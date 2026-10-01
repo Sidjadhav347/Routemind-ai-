@@ -73,7 +73,7 @@ function MainAppContent() {
           <Route path="/" element={<ProtectedRoute><TripPlannerPage /></ProtectedRoute>} />
           <Route path="/monitor" element={<ProtectedRoute><ActiveMonitorPage /></ProtectedRoute>} />
           <Route path="/simulator" element={<ProtectedRoute><WhatIfSimulatorPage /></ProtectedRoute>} />
-          <Route path="/coloading" element={<ProtectedRoute><CoLoadingMarketplacePage /></ProtectedRoute>} />
+          <Route path="/coloading" element={<Navigate to="/#coloading-feature" replace />} />
           <Route path="/vehicles" element={<ProtectedRoute><VehiclesPage /></ProtectedRoute>} />
           <Route path="/cargo" element={<ProtectedRoute><CargoPage /></ProtectedRoute>} />
           <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />

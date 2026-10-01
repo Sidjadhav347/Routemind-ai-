@@ -19,8 +19,10 @@ import {
   CheckCircle2,
   Calendar,
   Compass,
-  ArrowRight
+  ArrowRight,
+  Share2
 } from 'lucide-react';
+import CoLoadingFeatureSection from '../components/coloading/CoLoadingFeatureSection';
 
 const PRESET_CORRIDORS = [
   { name: 'Mumbai → Pune (Hackathon Core)', origin: 'Mumbai, Maharashtra', dest: 'Pune, Maharashtra' },
@@ -67,6 +69,11 @@ export default function TripPlannerPage() {
 
   useEffect(() => {
     loadFleetAndCargo();
+    if (window.location.hash === '#coloading-feature' || window.location.hash === '#coloading') {
+      setTimeout(() => {
+        document.getElementById('coloading-feature')?.scrollIntoView({ behavior: 'smooth' });
+      }, 350);
+    }
   }, []);
 
   const loadFleetAndCargo = async () => {
@@ -188,6 +195,29 @@ export default function TripPlannerPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      {/* Top Same-Page Feature Switcher Pills */}
+      <div className="flex items-center gap-2 p-1.5 rounded-2xl glass-panel border border-emerald-900/50 bg-[#06120b] w-fit flex-wrap">
+        <button
+          type="button"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-heading font-bold bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/30"
+        >
+          <Navigation className="w-3.5 h-3.5 fill-slate-950/20" />
+          <span>Route & Trip Planner</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => document.getElementById('coloading-feature')?.scrollIntoView({ behavior: 'smooth' })}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-heading font-bold text-amber-300 hover:text-white hover:bg-amber-950/30 transition border border-amber-500/30 shadow-sm shadow-amber-500/10"
+        >
+          <Share2 className="w-3.5 h-3.5 text-amber-400" />
+          <span>Co-Loading Marketplace Network</span>
+          <span className="text-[9px] uppercase px-1.5 py-0.2 rounded-full bg-amber-500/30 text-amber-200 font-extrabold">
+            Same-Page Feature
+          </span>
+        </button>
+      </div>
+
       {/* Hero Showcase Banner Matching StinPort Global Trade Theme */}
       <div className="relative glass-panel p-6 sm:p-8 rounded-3xl border border-emerald-500/25 overflow-hidden">
         {/* Ambient Emerald Halo Glow */}
@@ -538,7 +568,68 @@ export default function TripPlannerPage() {
         </div>
 
         {/* Right Column: Interactive Map & Live Corridor View (7 cols) */}
-        <div className="lg:col-span-7 flex flex-col gap-5">
+        <div className="lg:col-span-7 flex flex-col gap-4">
+          {/* Location Pinning Controls Bar */}
+          <div className="flex items-center justify-between gap-3 p-3 rounded-2xl glass-panel border border-emerald-500/30 bg-[#08140f]/80 flex-wrap">
+            <div className="flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-emerald-400" />
+              <span className="text-xs font-heading font-bold text-slate-200 uppercase tracking-wide">
+                Pin Location:
+              </span>
+              <span className="text-[11px] text-slate-400">
+                {pinMode ? `Active: Click map to place ${pinMode.toUpperCase()}` : 'Select a mode to pin on map'}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setPinMode(pinMode === 'origin' ? null : 'origin')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition ${
+                  pinMode === 'origin'
+                    ? 'bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/40 ring-2 ring-emerald-300'
+                    : 'bg-emerald-950/40 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-900/40'
+                }`}
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                <span>Pin Origin (A)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPinMode(pinMode === 'destination' ? null : 'destination')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition ${
+                  pinMode === 'destination'
+                    ? 'bg-rose-500 text-white font-bold shadow-md shadow-rose-500/40 ring-2 ring-rose-300'
+                    : 'bg-rose-950/40 text-rose-300 border border-rose-500/40 hover:bg-rose-900/40'
+                }`}
+              >
+                <span className="w-2 h-2 rounded-full bg-rose-400"></span>
+                <span>Pin Dest (B)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPinMode(pinMode === 'waypoint' ? null : 'waypoint')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition ${
+                  pinMode === 'waypoint'
+                    ? 'bg-purple-500 text-white font-bold shadow-md shadow-purple-500/40 ring-2 ring-purple-300'
+                    : 'bg-purple-950/40 text-purple-300 border border-purple-500/40 hover:bg-purple-900/40'
+                }`}
+              >
+                <span className="w-2 h-2 rounded-full bg-purple-400"></span>
+                <span>+ Waypoint</span>
+              </button>
+              {pinMode && (
+                <button
+                  type="button"
+                  onClick={() => setPinMode(null)}
+                  className="px-2 py-1 text-xs text-slate-400 hover:text-white"
+                  title="Cancel Pin Mode"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          </div>
+
           <div className="w-full h-[500px] rounded-3xl overflow-hidden shadow-2xl border border-emerald-900/40">
             <RouteMap
               origin={originCoord}
@@ -793,6 +884,15 @@ export default function TripPlannerPage() {
           </div>
         </div>
       )}
+
+      {/* Embedded Co-Loading Marketplace Network Feature (Same Page) */}
+      <CoLoadingFeatureSection
+        currentOrigin={originQuery}
+        currentDestination={destinationQuery}
+        onApplyLaneToPlanner={(lane) => {
+          handleApplyPreset({ origin: lane.origin, dest: lane.destination });
+        }}
+      />
     </div>
   );
 }

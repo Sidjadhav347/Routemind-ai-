@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RouteMind GeoCanvas — Keyless Map & Co-Loading Marketplace Network</title>
+  <meta name="description" content="AI Logistics platform featuring Keyless OpenStreetMap with Leaflet.js, interactive multi-stop pin location, and the Co-Loading Marketplace Network for autonomous empty container space sharing." />
+
+  <!-- Google Fonts: Figtree (Decent, Clean, Premium Sans-Serif) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet" />
+
+  <!-- Leaflet.js CSS (Keyless OpenStreetMap) -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Top Live Bridge Banner -->
+  <div class="system-bridge-banner">
+    <div class="bridge-inner">
+      <div class="bridge-tag">
+        <span class="live-dot"></span>
+        <span>STANDALONE PORTAL (PORT 8080)</span>
+      </div>
+      <p class="bridge-text">
+        Connected to <strong>RouteMind AI Core</strong>. All features active: <strong>Location Pinning</strong>, <strong>Co-Loading Marketplace</strong>, and <strong>Autonomous Cost Splitting</strong>.
+      </p>
+      <a href="http://localhost:3000" class="bridge-link" target="_blank" rel="noreferrer">
+        Open Full React App (Port 3000) &rarr;
+      </a>
+    </div>
+  </div>
+
+  <!-- Site Navigation Header -->
+  <header class="site-header">
+    <div class="header-container">
+      <a href="#" class="brand-logo">
+        <span class="logo-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+          </svg>
+        </span>
+        <div class="logo-brand-wrap">
+          <span class="logo-text">RouteMind <span class="logo-accent">GeoCanvas</span></span>
+          <span class="logo-badge">KEYLESS AI</span>
+        </div>
+      </a>
+
+      <nav class="nav-links">
+        <a href="#overview">Overview</a>
+        <a href="#map-section">Pin Location &amp; Map</a>
+        <a href="#coloading-section">Co-Loading Marketplace</a>
+        <a href="#simulator-section">Traffic Simulator</a>
+        <a href="#features">Architecture</a>
+      </nav>
+
+      <div class="header-actions">
+        <button class="btn btn-outline btn-sm" id="headerPinOriginBtn">
+          📍 Pin Origin
+        </button>
+        <button class="btn btn-outline btn-sm" id="headerPinDestBtn">
+          🏁 Pin Dest
+        </button>
+        <a href="http://localhost:3000" class="btn btn-primary btn-sm" target="_blank">
+          Open Full Suite
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero / Headline Section -->
+    <section class="hero-section" id="overview">
+      <div class="hero-content">
+        <div class="pill-badge">
+          <span class="status-dot"></span>
+          <span>Zero API Keys &bull; OpenStreetMap Leaflet &bull; Co-Loading Marketplace</span>
+        </div>
+
+        <h1 class="hero-title">
+          Pin locations, optimize routes &amp; share truck capacity autonomously.
+        </h1>
+
+        <p class="hero-subtitle">
+          An all-in-one geospatial logistics interface. Drop interactive pins anywhere on Earth with keyless OpenStreetMap, 
+          and leverage the <strong>Co-Loading Marketplace Network</strong> to automatically match empty container space 
+          between non-competing companies to split freight costs in real time.
+        </p>
+
+        <div class="hero-buttons">
+          <a href="#map-section" class="btn btn-primary btn-large">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+            Interactive Map &amp; Pinning
+          </a>
+          <a href="#coloading-section" class="btn btn-emerald btn-large">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+            </svg>
+            Co-Loading Marketplace
+          </a>
+        </div>
+
+        <!-- Real-Time Metrics Ribbon -->
+        <div class="stats-ribbon">
+          <div class="stat-item">
+            <span class="stat-number text-emerald">40%</span>
+            <span class="stat-label">Freight Cost Savings</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-number text-primary">0 Keys</span>
+            <span class="stat-label">Keyless OpenStreetMap</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-number text-amber">60% &rarr; 100%</span>
+            <span class="stat-label">Reefer Truck Utilization</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-number text-purple">148 kg</span>
+            <span class="stat-label">CO₂ Abated / Corridor</span>
+          </div>
+        </div>
+
+        <div class="scroll-cue">
+          <span class="scroll-label">Scroll to explore interactive map &amp; co-loading network</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 1: Interactive Map Canvas with Pinning & Route Generation -->
+    <section class="map-section" id="map-section">
+      <div class="section-header">
+        <div class="section-pill">FEATURE 1: INTERACTIVE MAP &amp; LOCATION PINNING</div>
+        <h2 class="section-title">Drop Pins Anywhere &amp; Generate Real-Time Routes</h2>
+        <p class="section-subtitle">
+          Click buttons to activate Pin Modes. Click directly on the map to set <strong>Origin (Point A)</strong>, 
+          <strong>Destination (Point B)</strong>, or multiple <strong>Waypoints</strong>. Drag pins to dynamically reroute!
+        </p>
+      </div>
+
+      <div class="map-container-card">
+        <!-- Floating Interactive Toolbar -->
+        <div class="map-toolbar">
+          <div class="toolbar-group">
+            <span class="toolbar-label">Pin Modes:</span>
+            <div class="pin-mode-group">
+              <button class="pin-tool-btn" id="toolPinOrigin" title="Set Origin Location">
+                <span class="badge-dot green"></span> Set Origin (A)
+              </button>
+              <button class="pin-tool-btn" id="toolPinDest" title="Set Destination Location">
+                <span class="badge-dot red"></span> Set Dest (B)
+              </button>
+              <button class="pin-tool-btn" id="toolPinWaypoint" title="Add Intermediate Waypoint">
+                <span class="badge-dot purple"></span> + Waypoint
+              </button>
+              <button class="btn btn-sm btn-ghost" id="clearPinsBtn" title="Reset all pins">
+                Clear Pins
+              </button>
+            </div>
+          </div>
+
+          <div class="toolbar-group">
+            <label for="corridorSelect" class="toolbar-label">Quick Corridors:</label>
+            <select id="corridorSelect" class="toolbar-select">
+              <option value="mumbai-pune">Mumbai &rarr; Pune Expressway (Core Demo)</option>
+              <option value="bhiwandi-chakan">Bhiwandi Hub &rarr; Chakan Auto Cluster</option>
+              <option value="jnpt-hinjawadi">JNPT Container Terminal &rarr; Hinjawadi</option>
+              <option value="delhi-jaipur">Delhi &rarr; Jaipur Industrial Highway</option>
+            </select>
+          </div>
+
+          <div class="toolbar-group">
+            <span class="toolbar-label">Tile Layer:</span>
+            <div class="layer-pill-group">
+              <button class="layer-btn active" data-layer="osm">OSM Standard</button>
+              <button class="layer-btn" data-layer="light">Positron Light</button>
+              <button class="layer-btn" data-layer="dark">Dark Matter</button>
+              <button class="layer-btn" data-layer="google_roads">Google Roads</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Active Pinning Status Banner -->
+        <div class="pin-mode-indicator" id="pinModeBanner">
+          <span class="indicator-icon">📍</span>
+          <span id="pinModeText">Click anywhere on the map to interact. Select a Pin Mode above to drop new points.</span>
+          <button class="btn-text-close" id="cancelPinModeBtn">&times;</button>
+        </div>
+
+        <!-- Leaflet Map Mount Point -->
+        <div id="map"></div>
+
+        <!-- Route Telemetry & Coordinate Footer HUD -->
+        <div class="map-footer-hud">
+          <div class="hud-item">
+            <span class="hud-dot green"></span>
+            <span class="hud-label">Origin (A):</span>
+            <span class="hud-value highlight" id="hudOrigin">Mumbai Logistics Park, Maharashtra</span>
+          </div>
+
+          <div class="hud-item">
+            <span class="hud-dot red"></span>
+            <span class="hud-label">Destination (B):</span>
+            <span class="hud-value highlight" id="hudDest">Pune Cold Storage Hub, Maharashtra</span>
+          </div>
+
+          <div class="hud-item">
+            <span class="hud-label">Distance:</span>
+            <span class="hud-value" id="hudDistance">148.5 km</span>
+          </div>
+
+          <div class="hud-item">
+            <span class="hud-label">Transit Time:</span>
+            <span class="hud-value" id="hudDuration">2h 45m</span>
+          </div>
+
+          <div class="hud-item right">
+            <span class="hud-label">Fuel Est:</span>
+            <span class="hud-value text-emerald" id="hudFuel">38.4 Liters</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: The Co-Loading Marketplace Network (Requested Feature) -->
+    <section class="coloading-section" id="coloading-section">
+      <div class="section-header">
+        <div class="section-pill emerald">FEATURE 2: CO-LOADING MARKETPLACE NETWORK</div>
+        <h2 class="section-title">Autonomous Empty Container Sharing</h2>
+        <p class="section-subtitle">
+          Allows non-competing companies to share empty container space in real time. 
+          When <strong>Company A</strong> fills only <strong>60% of a refrigerated truck</strong> on a specific lane, 
+          the AI automatically scans the network and matches them with <strong>Company B</strong> on that exact route, 
+          splitting freight costs autonomously!
+        </p>
+      </div>
+
+      <!-- Interactive Co-Loading Simulator Widget -->
+      <div class="coloading-showcase-card">
+        <div class="showcase-grid">
+          
+          <!-- Column 1: Company A Initial State -->
+          <div class="company-card company-a">
+            <div class="company-header">
+              <div class="company-avatar a">A</div>
+              <div>
+                <h3 class="company-title">Company A: Apex Cold Chain</h3>
+                <span class="company-sub">Refrigerated Logistics &bull; Pharmaceutical Cargo</span>
+              </div>
+            </div>
+
+            <div class="truck-capacity-visualizer">
+              <div class="capacity-header">
+                <span>Truck Load Capacity:</span>
+                <span class="capacity-percent" id="sliderValText">60% Filled (12/20 Pallets)</span>
+              </div>
+              <div class="truck-bar-wrap">
+                <div class="truck-bar filled-a" id="truckBarA" style="width: 60%;">
+                  <span>Company A (60%)</span>
+                </div>
+                <div class="truck-bar empty-space" id="truckBarEmpty" style="width: 40%;">
+                  <span>40% Empty Space</span>
+                </div>
+              </div>
+              <div class="capacity-slider-ctrl">
+                <label for="capacitySlider">Adjust Company A Load:</label>
+                <input type="range" id="capacitySlider" min="30" max="85" step="5" value="60" />
+              </div>
+            </div>
+
+            <div class="lane-info-box">
+              <div class="lane-row">
+                <span class="lane-k">Route Lane:</span>
+                <span class="lane-v">Mumbai Hub &rarr; Pune DC</span>
+              </div>
+              <div class="lane-row">
+                <span class="lane-k">Truck Type:</span>
+                <span class="lane-v">32ft Multi-Axle Reefer (-18&deg;C)</span>
+              </div>
+              <div class="lane-row">
+                <span class="lane-k">Solo Charter Cost:</span>
+                <span class="lane-v text-muted">&#8377;24,000 ($320)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 2: AI Matching Engine Centerpiece -->
+          <div class="ai-matcher-centerpiece">
+            <div class="ai-pulse-icon">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+              </svg>
+            </div>
+            <div class="matcher-status">
+              <span class="status-badge pulse">AI SCANNING NETWORK</span>
+              <h4 class="matcher-headline">99.4% Match Found!</h4>
+              <p class="matcher-desc">
+                AI identified an exact lane overlap with compatible cold-chain specs. Non-competing agricultural perishables.
+              </p>
+            </div>
+
+            <!-- Cost Splitting Matrix -->
+            <div class="cost-split-matrix">
+              <div class="split-row">
+                <span>Original Solo Cost:</span>
+                <span class="cost-old">&#8377;24,000</span>
+              </div>
+              <div class="split-divider"></div>
+              <div class="split-row highlight">
+                <span>Company A Pays (<span id="compAPercentText">60%</span>):</span>
+                <span class="cost-new" id="costAVal">&#8377;14,400 <span class="savings">(-40%)</span></span>
+              </div>
+              <div class="split-row highlight">
+                <span>Company B Pays (<span id="compBPercentText">40%</span>):</span>
+                <span class="cost-new" id="costBVal">&#8377;9,600 <span class="savings">(-60%)</span></span>
+              </div>
+              <div class="split-row green-row">
+                <span>Carbon Abated:</span>
+                <span class="cost-eco" id="co2Val">148 kg CO&sub2;e</span>
+              </div>
+            </div>
+
+            <button class="btn btn-emerald btn-full" id="authorizeMatchBtn">
+              Authorize Autonomous Contract &rarr;
+            </button>
+            <div class="contract-hash" id="contractHash">
+              Smart Contract Hash: #RM-LANE-883921-VERIFIED
+            </div>
+          </div>
+
+          <!-- Column 3: Company B Matched Partner -->
+          <div class="company-card company-b">
+            <div class="company-header">
+              <div class="company-avatar b">B</div>
+              <div>
+                <h3 class="company-title">Company B: FreshBerry Organics</h3>
+                <span class="company-sub">Organic Fruits &bull; Non-Competing Perishable</span>
+              </div>
+            </div>
+
+            <div class="matched-box">
+              <div class="match-badge">COMPATIBLE CARGO</div>
+              <h4 class="matched-cargo-title">8 Pallets Organic Berries</h4>
+              <p class="matched-cargo-desc">
+                Requires -18&deg;C refrigerated storage. Same pickup time window (&plusmn;30 min) and destination offload corridor.
+              </p>
+            </div>
+
+            <div class="lane-info-box">
+              <div class="lane-row">
+                <span class="lane-k">Space Taken:</span>
+                <span class="lane-v" id="compBSpaceVal">40% Remaining Space (8 Pallets)</span>
+              </div>
+              <div class="lane-row">
+                <span class="lane-k">Original Solo Charter:</span>
+                <span class="lane-v text-muted">&#8377;24,000</span>
+              </div>
+              <div class="lane-row">
+                <span class="lane-k">Co-Loading Total:</span>
+                <span class="lane-v text-emerald" id="compBTotalVal">&#8377;9,600 (Saved &#8377;14,400)</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Live Marketplace Real-Time Feed -->
+      <div class="marketplace-listings-section">
+        <h3 class="listings-title">Live Co-Loading Network Openings</h3>
+        <p class="listings-subtitle">Real-time open truck capacity broadcasted across commercial corridors:</p>
+
+        <div class="listings-grid">
+          <div class="listing-card">
+            <div class="listing-top">
+              <span class="listing-type reefer">Refrigerated (-18&deg;C)</span>
+              <span class="listing-space">40% Space Left</span>
+            </div>
+            <h4 class="listing-route">Mumbai &rarr; Pune Corridor</h4>
+            <p class="listing-carrier">Apex Cold Logistics &bull; 8 Pallets Available</p>
+            <div class="listing-footer">
+              <span class="listing-cost">&#8377;9,600 / split</span>
+              <button class="btn btn-sm btn-outline quick-pair-btn" data-lane="Mumbai to Pune">Pair Lane</button>
+            </div>
+          </div>
+
+          <div class="listing-card">
+            <div class="listing-top">
+              <span class="listing-type dry">Dry Van (Ambient)</span>
+              <span class="listing-space">50% Space Left</span>
+            </div>
+            <h4 class="listing-route">Bhiwandi &rarr; Chakan Industrial</h4>
+            <p class="listing-carrier">Om Logistics &bull; 10 Pallets Auto Parts</p>
+            <div class="listing-footer">
+              <span class="listing-cost">&#8377;7,200 / split</span>
+              <button class="btn btn-sm btn-outline quick-pair-btn" data-lane="Bhiwandi to Chakan">Pair Lane</button>
+            </div>
+          </div>
+
+          <div class="listing-card">
+            <div class="listing-top">
+              <span class="listing-type reefer">Refrigerated (2-8&deg;C)</span>
+              <span class="listing-space">35% Space Left</span>
+            </div>
+            <h4 class="listing-route">JNPT Port &rarr; Nashik Agri Hub</h4>
+            <p class="listing-carrier">TransIndia Cold &bull; Dairy / Pharma</p>
+            <div class="listing-footer">
+              <span class="listing-cost">&#8377;11,800 / split</span>
+              <button class="btn btn-sm btn-outline quick-pair-btn" data-lane="JNPT to Nashik">Pair Lane</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: What-If Traffic & Disturbance Simulator -->
+    <section class="simulator-section" id="simulator-section">
+      <div class="section-header">
+        <div class="section-pill purple">FEATURE 3: WHAT-IF DISTURBANCE SIMULATOR</div>
+        <h2 class="section-title">Test Extreme Scenarios &amp; Reroute Dynamically</h2>
+        <p class="section-subtitle">
+          Inject real-world bottlenecks (monsoon downpours, expressway accidents, hill ghat restrictions) 
+          and observe the autonomous reroute logic.
+        </p>
+      </div>
+
+      <div class="simulator-card">
+        <div class="sim-scenario-selector">
+          <button class="scenario-btn active" data-scenario="normal">
+            <span class="scen-icon">&check;</span> Normal Operations
+          </button>
+          <button class="scenario-btn" data-scenario="monsoon">
+            <span class="scen-icon">&cloud;</span> Heavy Monsoon Ghats (+35 min)
+          </button>
+          <button class="scenario-btn" data-scenario="toll">
+            <span class="scen-icon">&octagon;</span> Expressway Toll Jam (+20 min)
+          </button>
+          <button class="scenario-btn" data-scenario="overheat">
+            <span class="scen-icon">&exclamation;</span> Reefer Sensor Alert
+          </button>
+        </div>
+
+        <div class="sim-result-box" id="simResultBox">
+          <div class="sim-result-header">
+            <h3 class="sim-title" id="simTitle">Standard Optimum Transit</h3>
+            <span class="sim-tag" id="simTag">STATUS: OPTIMAL</span>
+          </div>
+          <p class="sim-desc" id="simDesc">
+            Direct transit via Mumbai-Pune Expressway. Zero delays reported. Ideal for temperature-sensitive cargo.
+          </p>
+          <div class="sim-telemetry-row">
+            <div class="sim-metric">
+              <span class="sim-k">Duration:</span>
+              <span class="sim-v" id="simDuration">2h 45m</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-k">Distance:</span>
+              <span class="sim-v" id="simDist">148.5 km</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-k">Toll &amp; Fuel:</span>
+              <span class="sim-v" id="simCost">&#8377;4,820</span>
+            </div>
+            <div class="sim-metric">
+              <span class="sim-k">AI Recommendation:</span>
+              <span class="sim-v text-emerald" id="simRec">Maintain Expressway Lane</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 4: Architecture & Engineering Cards -->
+    <section class="features-section" id="features">
+      <div class="section-header">
+        <h2 class="section-title">Engineered with Human Craftsmanship</h2>
+        <p class="section-subtitle">
+          Constructed with semantic HTML5, CSS custom tokens, and modular vanilla JavaScript.
+        </p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="card-icon blue">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </div>
+          <h3 class="card-title">Keyless &amp; Privacy-First</h3>
+          <p class="card-text">
+            Zero API keys, billing accounts, or gated endpoints. OpenStreetMap and Carto tile mirrors render 60 FPS vector imagery completely keyless.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="card-icon emerald">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+          </div>
+          <h3 class="card-title">Multi-Point Pinning</h3>
+          <p class="card-text">
+            Drop Origin (A), Destination (B), or unlimited Waypoints. Draggable markers dynamically recalculate routes and resolve addresses via Nominatim.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="card-icon purple">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <polygon points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
+          <h3 class="card-title">Autonomous Cost Splitting</h3>
+          <p class="card-text">
+            Co-loading algorithm calculates proportional shares based on cubic pallet volume, weight, and distance, eliminating deadhead miles.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Call to Action Section -->
+    <section class="cta-section">
+      <div class="cta-card">
+        <h2 class="cta-title">Connect to the Full RouteMind Platform</h2>
+        <p class="cta-subtitle">
+          Experience the complete React application on Port 3000 featuring multi-truck fleet dispatch, live sensor telemetry, and AI Assistant reasoning.
+        </p>
+        <div class="cta-buttons">
+          <a href="http://localhost:3000" target="_blank" rel="noreferrer" class="btn btn-primary btn-large">
+            Open Full App (Port 3000) &rarr;
+          </a>
+          <a href="#map-section" class="btn btn-secondary btn-large">
+            Back to Map Studio
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Site Footer -->
+  <footer class="site-footer">
+    <div class="footer-container">
+      <div class="footer-col">
+        <div class="brand-logo footer-logo">
+          <span class="logo-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+            </svg>
+          </span>
+          <span class="logo-text">RouteMind GeoCanvas</span>
+        </div>
+        <p class="footer-desc">
+          Keyless OpenStreetMap, Multi-Point Location Pinning, and Autonomous Co-Loading Marketplace Network.
+        </p>
+      </div>
+
+      <div class="footer-links">
+        <div class="link-group">
+          <span class="group-title">Features</span>
+          <a href="#map-section">Location Pinning</a>
+          <a href="#coloading-section">Co-Loading Marketplace</a>
+          <a href="#simulator-section">Traffic Simulator</a>
+        </div>
+        <div class="link-group">
+          <span class="group-title">Live Systems</span>
+          <a href="http://localhost:8080">Standalone Portal (8080)</a>
+          <a href="http://localhost:3000" target="_blank">Full React Suite (3000)</a>
+          <a href="http://localhost:5000/api/health" target="_blank">Backend API (5000)</a>
+        </div>
+        <div class="link-group">
+          <span class="group-title">Open Standards</span>
+          <a href="https://www.openstreetmap.org" target="_blank" rel="noreferrer">OpenStreetMap</a>
+          <a href="https://leafletjs.com" target="_blank" rel="noreferrer">Leaflet 1.9.4</a>
+          <a href="https://nominatim.org" target="_blank" rel="noreferrer">Nominatim API</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; 2026 RouteMind AI &bull; Built with Keyless OpenStreetMap and Leaflet &bull; Clean human-quality code.</p>
+    </div>
+  </footer>
+
+  <!-- Leaflet.js Core Script (Keyless) -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+
+  <!-- Complete Application Logic -->
+  <script src="script.js"></script>
+</body>
+</html>

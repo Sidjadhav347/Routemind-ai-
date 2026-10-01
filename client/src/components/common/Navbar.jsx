@@ -17,15 +17,12 @@ import {
   AlertTriangle,
   Radio,
   ChevronDown,
-  Share2,
-  Key
+  Share2
 } from 'lucide-react';
-import ApiKeysModal from './ApiKeysModal';
 
 export default function Navbar({ onOpenAI = () => {}, onTriggerScenario = () => {} }) {
   const { user, logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const [showApiKeys, setShowApiKeys] = useState(false);
 
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -137,22 +134,24 @@ export default function Navbar({ onOpenAI = () => {}, onTriggerScenario = () => 
               <span>Simulator</span>
             </NavLink>
 
-            <NavLink
-              to="/coloading"
-              className={({ isActive }) =>
-                `flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-heading font-semibold transition relative group ${
-                  isActive
-                    ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 shadow-sm shadow-emerald-500/20'
-                    : 'text-slate-300 hover:text-emerald-300 hover:bg-emerald-950/30'
-                }`
-              }
+            <button
+              type="button"
+              onClick={() => {
+                if (window.location.pathname === '/') {
+                  document.getElementById('coloading-feature')?.scrollIntoView({ behavior: 'smooth' });
+                } else {
+                  navigate('/#coloading-feature');
+                }
+              }}
+              className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-heading font-semibold text-slate-300 hover:text-amber-300 hover:bg-emerald-950/30 transition relative group"
+              title="View Co-Loading Marketplace Feature on Same Page"
             >
               <Share2 className="w-3.5 h-3.5 text-amber-400" />
               <span>Co-Loading</span>
               <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">
                 AI
               </span>
-            </NavLink>
+            </button>
 
             <NavLink
               to="/vehicles"
@@ -309,16 +308,6 @@ export default function Navbar({ onOpenAI = () => {}, onTriggerScenario = () => 
                 )}
               </div>
 
-              {/* API Keys Configuration Button */}
-              <button
-                onClick={() => setShowApiKeys(true)}
-                title="Configure Google Maps & AI API Keys"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 transition text-xs font-semibold"
-              >
-                <Key className="w-3.5 h-3.5 text-amber-400" />
-                <span className="hidden sm:inline">Google API Key</span>
-              </button>
-
               {/* Logout Button */}
               <button
                 onClick={logout}
@@ -330,15 +319,6 @@ export default function Navbar({ onOpenAI = () => {}, onTriggerScenario = () => 
             </>
           ) : (
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => setShowApiKeys(true)}
-                title="Configure Google Maps & AI API Keys"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 transition text-xs font-semibold"
-              >
-                <Key className="w-3.5 h-3.5 text-amber-400" />
-                <span className="hidden sm:inline">Google API Key</span>
-              </button>
-
               <NavLink
                 to="/login"
                 className="px-4 py-2 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 hover:from-emerald-400 hover:to-emerald-300 text-slate-950 text-xs font-heading font-extrabold uppercase tracking-wider transition-all duration-200 shadow-emerald-glow hover:shadow-emerald-glow-hover transform hover:-translate-y-0.5 active:translate-y-0"
@@ -349,8 +329,6 @@ export default function Navbar({ onOpenAI = () => {}, onTriggerScenario = () => 
           )}
         </div>
       </div>
-
-      <ApiKeysModal isOpen={showApiKeys} onClose={() => setShowApiKeys(false)} />
     </header>
   );
 }
