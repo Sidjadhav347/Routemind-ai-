@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { OSRMProvider } from './osrmProvider.js';
+import { getGoogleMapsApiKey } from '../../config/keyVault.js';
 
 /**
  * Decode Google Encoded Polyline into [ [lat, lng], ... ] coordinates
@@ -45,7 +46,7 @@ export class GoogleMapsProvider {
    * If API key is not configured or fails, falls back gracefully to OSRM / Haversine.
    */
   static async getRoutes(origin, destination, waypoints = []) {
-    const apiKey = process.env.GOOGLE_MAPS_API_KEY || global.__RUNTIME_GOOGLE_MAPS_API_KEY;
+    const apiKey = getGoogleMapsApiKey();
 
     if (!apiKey) {
       return OSRMProvider.getRoutes(origin, destination, waypoints);
@@ -93,7 +94,7 @@ export class GoogleMapsProvider {
    * Geocode an address query with Google Maps Geocoding API
    */
   static async geocode(query) {
-    const apiKey = process.env.GOOGLE_MAPS_API_KEY || global.__RUNTIME_GOOGLE_MAPS_API_KEY;
+    const apiKey = getGoogleMapsApiKey();
     if (!apiKey) return null;
 
     try {

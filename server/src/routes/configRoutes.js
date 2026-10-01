@@ -2,6 +2,7 @@ import { Router } from 'express';
 import fs from 'fs';
 import path from 'path';
 import axios from 'axios';
+import { getGoogleMapsApiKey } from '../config/keyVault.js';
 
 const router = Router();
 
@@ -46,7 +47,7 @@ function persistToEnv(keyName, value) {
 }
 
 router.get('/keys', (req, res) => {
-  const currentKey = process.env.GOOGLE_MAPS_API_KEY || global.__RUNTIME_GOOGLE_MAPS_API_KEY || '';
+  const currentKey = getGoogleMapsApiKey() || '';
   const maskedKey = currentKey.length > 8 ? `${currentKey.substring(0, 6)}...${currentKey.slice(-4)}` : null;
 
   res.json({
