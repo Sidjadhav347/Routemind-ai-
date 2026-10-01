@@ -1,0 +1,18 @@
+{
+  "name": "routemind-ai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "RouteMind AI - Predict. Optimize. Move Smarter. (AI for Smart Mobility)",
+  "scripts": {
+    "dev:server": "npm --prefix server run dev",
+    "dev:client": "npm --prefix client run dev",
+    "dev": "concurrently \"npm --prefix server run dev\" \"npm --prefix client run dev\"",
+    "start:server": "npm --prefix server start",
+    "start:client": "npm --prefix client run dev",
+    "build:client": "npm --prefix client run build",
+    "test:server": "npm --prefix server test"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
