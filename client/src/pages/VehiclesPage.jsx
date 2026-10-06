@@ -110,22 +110,24 @@ export default function VehiclesPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* Header */}
-      <div className="glass-panel p-6 rounded-3xl border border-emerald-900/40 flex items-center justify-between">
+      <div className="bg-white p-6 rounded-3xl border border-slate-200/90 shadow-xs flex items-center justify-between">
         <div>
-          <h1 className="text-xl sm:text-2xl font-heading font-extrabold text-white tracking-tight flex items-center gap-2 uppercase">
-            <Truck className="w-6 h-6 text-emerald-400" />
+          <h1 className="text-xl sm:text-2xl font-heading font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-orange-100 text-[#ea580c] flex items-center justify-center">
+              <Truck className="w-4 h-4" />
+            </div>
             Fleet Vehicle Management
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Configure vehicle dimensions, tare weights, and payload capacities for clearance checks.
+          <p className="text-xs text-slate-500 mt-1">
+            Configure vehicle dimensions, tare weights, and payload capacities for road clearance checks.
           </p>
         </div>
 
         <button
           onClick={handleOpenAdd}
-          className="px-6 py-2.5 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 hover:from-emerald-400 hover:to-emerald-300 text-slate-950 font-heading font-extrabold text-xs uppercase tracking-wider shadow-emerald-glow hover:shadow-emerald-glow-hover transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-1.5"
+          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#ea580c] to-[#f97316] hover:from-[#c2410c] hover:to-[#ea580c] text-white font-heading font-bold text-xs tracking-wider shadow-sm transition-all duration-200 flex items-center gap-1.5"
         >
-          <Plus className="w-4 h-4 text-slate-950" />
+          <Plus className="w-4 h-4 text-white" />
           <span>Add Fleet Vehicle</span>
         </button>
       </div>
@@ -133,64 +135,64 @@ export default function VehiclesPage() {
       {/* Vehicle Grid Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {vehicles.map(v => (
-          <div key={v.id} className="glass-panel p-6 rounded-3xl border border-emerald-900/40 flex flex-col justify-between space-y-4 hover:border-emerald-500/40 transition">
+          <div key={v.id} className="bg-white p-6 rounded-3xl border border-slate-200/90 shadow-xs flex flex-col justify-between space-y-4 hover:border-orange-300 hover:shadow-md transition">
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-xs font-mono font-bold tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                <span className="text-xs font-mono font-bold tracking-wider px-2.5 py-0.5 rounded-full bg-orange-50 text-[#ea580c] border border-orange-200">
                   {v.type}
                 </span>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                   {v.status}
                 </span>
               </div>
 
-              <h3 className="font-black text-base text-white mt-3">{v.name}</h3>
+              <h3 className="font-extrabold text-base text-slate-900 mt-3">{v.name}</h3>
 
-              {/* Physical Dimensions Alert */}
-              <div className="mt-3 p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs space-y-1">
-                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                  <Ruler className="w-3.5 h-3.5 text-indigo-400" />
+              {/* Physical Dimensions */}
+              <div className="mt-3 p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-xs space-y-1">
+                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                  <Ruler className="w-3.5 h-3.5 text-[#ea580c]" />
                   Road Clearance Profile
                 </div>
-                <div className="grid grid-cols-3 gap-1 text-[11px] text-slate-300 pt-0.5">
-                  <div>H: <strong className={v.height_m > 3.5 ? 'text-amber-400 font-bold' : 'text-slate-100'}>{v.height_m}m</strong></div>
-                  <div>W: <strong className="text-slate-100">{v.width_m}m</strong></div>
-                  <div>L: <strong className="text-slate-100">{v.length_m}m</strong></div>
+                <div className="grid grid-cols-3 gap-1 text-[11px] text-slate-600 pt-0.5">
+                  <div>H: <strong className={v.height_m > 3.5 ? 'text-amber-600 font-bold' : 'text-slate-800'}>{v.height_m}m</strong></div>
+                  <div>W: <strong className="text-slate-800">{v.width_m}m</strong></div>
+                  <div>L: <strong className="text-slate-800">{v.length_m}m</strong></div>
                 </div>
               </div>
 
               {/* Payload & Fuel Metrics */}
               <div className="grid grid-cols-2 gap-2 text-xs mt-3">
-                <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80">
-                  <div className="text-[10px] text-slate-500">Gross Capacity</div>
-                  <div className="font-extrabold text-slate-200 mt-0.5">
+                <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                  <div className="text-[10px] text-slate-500 font-medium">Gross Capacity</div>
+                  <div className="font-extrabold text-slate-900 mt-0.5">
                     {Number(v.max_weight_capacity_kg).toLocaleString()} kg
                   </div>
-                  <div className="text-[10px] text-slate-500">Tare: {v.tare_weight_kg}kg</div>
+                  <div className="text-[10px] text-slate-400">Tare: {v.tare_weight_kg}kg</div>
                 </div>
 
-                <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80">
-                  <div className="text-[10px] text-slate-500">Fuel & Economy</div>
-                  <div className="font-extrabold text-emerald-400 mt-0.5">
+                <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                  <div className="text-[10px] text-slate-500 font-medium">Fuel & Economy</div>
+                  <div className="font-extrabold text-[#ea580c] mt-0.5">
                     {v.fuel_efficiency_km_l} km/L
                   </div>
-                  <div className="text-[10px] text-slate-500">{v.fuel_type} • ₹{v.fuel_price_per_unit}/u</div>
+                  <div className="text-[10px] text-slate-400">{v.fuel_type} • ₹{v.fuel_price_per_unit}/u</div>
                 </div>
               </div>
             </div>
 
             {/* Actions */}
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800/60">
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
               <button
                 onClick={() => handleOpenEdit(v)}
-                className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white transition"
+                className="p-2 rounded-xl bg-slate-50 hover:bg-orange-50 text-slate-500 hover:text-[#ea580c] border border-slate-200 transition"
                 title="Edit Vehicle"
               >
                 <Edit2 className="w-4 h-4" />
               </button>
               <button
                 onClick={() => handleDelete(v.id)}
-                className="p-2 rounded-xl bg-slate-900 hover:bg-rose-950/60 text-slate-400 hover:text-rose-400 transition"
+                className="p-2 rounded-xl bg-slate-50 hover:bg-rose-50 text-slate-500 hover:text-rose-600 border border-slate-200 transition"
                 title="Delete Vehicle"
               >
                 <Trash2 className="w-4 h-4" />
@@ -202,155 +204,154 @@ export default function VehiclesPage() {
 
       {/* Add / Edit Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in">
-          <div className="glass-panel w-full max-w-lg rounded-3xl p-6 border border-slate-700 bg-slate-900 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-              <h3 className="font-extrabold text-base text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white w-full max-w-lg rounded-3xl p-6 border border-slate-200 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h3 className="font-extrabold text-base text-slate-900">
                 {editingId ? 'Edit Fleet Vehicle' : 'Register New Fleet Vehicle'}
               </h3>
-              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-white">
+              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {errorMsg && (
-              <div className="p-3 rounded-xl bg-rose-950/60 border border-rose-800 text-rose-300 text-xs">
+              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs">
                 {errorMsg}
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-3 text-xs">
               <div>
-                <label className="block font-semibold text-slate-300 mb-1">Vehicle Name</label>
+                <label className="block font-semibold text-slate-700 mb-1">Vehicle Name</label>
                 <input
                   type="text"
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="e.g. FreightMaster Heavy Hauler"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-[#ea580c] focus:ring-1 focus:ring-[#ea580c]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Vehicle Type</label>
+                  <label className="block font-semibold text-slate-700 mb-1">Vehicle Type</label>
                   <select
                     value={formData.type}
                     onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-[#ea580c]"
                   >
                     {VEHICLE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
-
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Fuel Type</label>
+                  <label className="block font-semibold text-slate-700 mb-1">Fuel Type</label>
                   <select
                     value={formData.fuel_type}
                     onChange={(e) => setFormData({ ...formData, fuel_type: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-[#ea580c]"
                   >
-                    {FUEL_TYPES.map(f => <option key={f} value={f}>{f}</option>)}
+                    {FUEL_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Height (m)</label>
+                  <label className="block font-semibold text-slate-700 mb-1">Height (m)</label>
                   <input
                     type="number"
                     step="0.1"
                     required
                     value={formData.height_m}
                     onChange={(e) => setFormData({ ...formData, height_m: parseFloat(e.target.value) })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-[#ea580c]"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Width (m)</label>
+                  <label className="block font-semibold text-slate-700 mb-1">Width (m)</label>
                   <input
                     type="number"
                     step="0.1"
                     required
                     value={formData.width_m}
                     onChange={(e) => setFormData({ ...formData, width_m: parseFloat(e.target.value) })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-[#ea580c]"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Length (m)</label>
+                  <label className="block font-semibold text-slate-700 mb-1">Length (m)</label>
                   <input
                     type="number"
                     step="0.1"
                     required
                     value={formData.length_m}
                     onChange={(e) => setFormData({ ...formData, length_m: parseFloat(e.target.value) })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-[#ea580c]"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Max Capacity (kg)</label>
+                  <label className="block font-semibold text-slate-700 mb-1">Max Capacity (kg)</label>
                   <input
                     type="number"
                     required
                     value={formData.max_weight_capacity_kg}
                     onChange={(e) => setFormData({ ...formData, max_weight_capacity_kg: parseFloat(e.target.value) })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-[#ea580c]"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Tare Weight (kg)</label>
+                  <label className="block font-semibold text-slate-700 mb-1">Tare Weight (kg)</label>
                   <input
                     type="number"
                     required
                     value={formData.tare_weight_kg}
                     onChange={(e) => setFormData({ ...formData, tare_weight_kg: parseFloat(e.target.value) })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-[#ea580c]"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Fuel Economy (km/L)</label>
+                  <label className="block font-semibold text-slate-700 mb-1">Fuel Economy (km/L)</label>
                   <input
                     type="number"
                     step="0.1"
                     required
                     value={formData.fuel_efficiency_km_l}
                     onChange={(e) => setFormData({ ...formData, fuel_efficiency_km_l: parseFloat(e.target.value) })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-[#ea580c]"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Fuel Price (₹/unit)</label>
+                  <label className="block font-semibold text-slate-700 mb-1">Fuel Price (₹/unit)</label>
                   <input
                     type="number"
                     step="0.1"
                     required
                     value={formData.fuel_price_per_unit}
                     onChange={(e) => setFormData({ ...formData, fuel_price_per_unit: parseFloat(e.target.value) })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-[#ea580c]"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 rounded-full bg-slate-800 text-slate-300 hover:bg-slate-700 transition text-xs font-heading font-semibold"
+                  className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition text-xs font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 text-slate-950 font-heading font-extrabold text-xs uppercase tracking-wider transition shadow-emerald-glow hover:shadow-emerald-glow-hover transform hover:-translate-y-0.5 active:translate-y-0"
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#ea580c] to-[#f97316] hover:from-[#c2410c] hover:to-[#ea580c] text-white font-bold text-xs tracking-wider shadow-sm transition"
                 >
                   {editingId ? 'Save Changes' : 'Register Vehicle'}
                 </button>

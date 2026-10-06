@@ -283,7 +283,7 @@ export default function RouteMap({
   };
 
   const [tempPin, setTempPin] = useState(null); // { lat, lng, address }
-  const [mapLayer, setMapLayer] = useState('dark');
+  const [mapLayer, setMapLayer] = useState('voyager');
   const [showLayerMenu, setShowLayerMenu] = useState(false);
 
   // Real-Time GPS User Location State
@@ -574,23 +574,23 @@ export default function RouteMap({
   });
 
   return (
-    <div className="relative w-full h-full min-h-[460px] rounded-3xl overflow-hidden border border-emerald-900/50 shadow-2xl bg-[#040907] flex flex-col">
+    <div className="relative w-full h-full min-h-[460px] rounded-3xl overflow-hidden border border-slate-200/90 shadow-sm bg-white flex flex-col">
       {/* TOP MAP ACTION TOOLBAR */}
       <div className="absolute top-3 left-3 right-3 z-[1000] flex items-center justify-between pointer-events-none gap-2 flex-wrap">
         {/* Left Side: Pin Mode Buttons & Live GPS Locate Button */}
-        <div className="flex items-center gap-1.5 p-1.5 rounded-2xl glass-panel bg-[#06140e]/95 border border-emerald-500/40 shadow-2xl backdrop-blur-md pointer-events-auto flex-wrap">
+        <div className="flex items-center gap-1.5 p-1.5 rounded-2xl glass-panel bg-white/95 border border-slate-200/90 shadow-md backdrop-blur-md pointer-events-auto flex-wrap">
           {/* REAL-TIME GPS CURRENT LOCATION BUTTON */}
           <button
             onClick={handleLocateMe}
             disabled={isLocating}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition shadow-md ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition shadow-xs ${
               locateSuccess
-                ? 'bg-cyan-500 text-slate-950 font-black shadow-cyan-glow animate-pulse'
-                : 'bg-emerald-950/70 text-emerald-300 border border-emerald-500/50 hover:bg-emerald-900/60'
+                ? 'bg-[#ea580c] text-white font-black shadow-orange-500/30 animate-pulse'
+                : 'bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100'
             }`}
             title="Locate me using device GPS and set as departure origin"
           >
-            <Radio className={`w-3.5 h-3.5 ${isLocating ? 'animate-spin text-cyan-400' : 'text-emerald-400'}`} />
+            <Radio className={`w-3.5 h-3.5 ${isLocating ? 'animate-spin text-[#ea580c]' : 'text-[#ea580c]'}`} />
             <span>{isLocating ? 'Acquiring GPS...' : locateSuccess ? '📍 GPS Locked!' : '🎯 Locate Me'}</span>
           </button>
 
@@ -599,15 +599,15 @@ export default function RouteMap({
             onClick={toggleGpsTracking}
             className={`px-2 py-1.5 rounded-xl text-[11px] font-mono font-bold transition ${
               isTrackingGps
-                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-orange-50 text-[#ea580c] border border-orange-200'
+                : 'text-slate-400 hover:text-slate-700'
             }`}
             title="Toggle live continuous GPS tracking watch"
           >
-            {isTrackingGps ? '🛰️ Live Track ON' : 'Track'}
+            {isTrackingGps ? '🛰️ Live Track' : 'Track'}
           </button>
 
-          <div className="w-[1px] h-4 bg-emerald-900/60 mx-1" />
+          <div className="w-[1px] h-4 bg-slate-200 mx-1" />
 
           {/* Pinning Controls */}
           {allowPinning && (
@@ -616,12 +616,12 @@ export default function RouteMap({
                 onClick={() => setPinMode(pinMode === 'origin' ? null : 'origin')}
                 className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition ${
                   pinMode === 'origin'
-                    ? 'bg-emerald-500 text-slate-950 font-bold shadow-emerald-glow'
-                    : 'text-slate-300 hover:text-emerald-300 hover:bg-emerald-950/40'
+                    ? 'bg-[#ea580c] text-white font-bold shadow-md shadow-orange-500/30'
+                    : 'text-slate-600 hover:text-[#ea580c] hover:bg-orange-50'
                 }`}
                 title="Click map to place Origin Pin A"
               >
-                <div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+                <div className="w-2.5 h-2.5 rounded-full bg-[#ea580c]" />
                 <span>Pin A</span>
               </button>
 
@@ -629,12 +629,12 @@ export default function RouteMap({
                 onClick={() => setPinMode(pinMode === 'destination' ? null : 'destination')}
                 className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition ${
                   pinMode === 'destination'
-                    ? 'bg-rose-500 text-white font-bold shadow-rose-glow'
-                    : 'text-slate-300 hover:text-rose-300 hover:bg-rose-950/40'
+                    ? 'bg-rose-500 text-white font-bold shadow-md shadow-rose-500/30'
+                    : 'text-slate-600 hover:text-rose-600 hover:bg-rose-50'
                 }`}
                 title="Click map to place Destination Pin B"
               >
-                <div className="w-2.5 h-2.5 rounded-full bg-rose-400" />
+                <div className="w-2.5 h-2.5 rounded-full bg-rose-500" />
                 <span>Pin B</span>
               </button>
 
@@ -642,8 +642,8 @@ export default function RouteMap({
                 onClick={() => setPinMode(pinMode === 'waypoint' ? null : 'waypoint')}
                 className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition ${
                   pinMode === 'waypoint'
-                    ? 'bg-indigo-500 text-white font-bold shadow-indigo-glow'
-                    : 'text-slate-300 hover:text-indigo-300 hover:bg-indigo-950/40'
+                    ? 'bg-amber-600 text-white font-bold shadow-md'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }`}
                 title="Click map to add a Waypoint Stop"
               >
@@ -659,28 +659,28 @@ export default function RouteMap({
           {/* Traffic Flow Overlay Toggle */}
           <button
             onClick={() => setShowTrafficLayer(!showTrafficLayer)}
-            className={`px-2.5 py-1.5 rounded-xl text-xs font-bold border transition flex items-center gap-1.5 backdrop-blur-md ${
+            className={`px-2.5 py-1.5 rounded-xl text-xs font-bold border transition flex items-center gap-1.5 backdrop-blur-md shadow-xs ${
               showTrafficLayer
-                ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500/50 shadow-md shadow-emerald-500/20'
-                : 'bg-[#08140f]/90 text-slate-400 border-emerald-900/40 hover:text-slate-200'
+                ? 'bg-orange-50 text-[#ea580c] border-orange-200'
+                : 'bg-white/95 text-slate-500 border-slate-200 hover:text-slate-800'
             }`}
             title="Toggle Live Real-Time Highway Traffic Heatmap"
           >
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-[#ea580c] animate-pulse" />
             <span className="text-[11px] font-mono">TRAFFIC {showTrafficLayer ? 'ON' : 'OFF'}</span>
           </button>
 
           {/* Clearance Hazards Toggle */}
           <button
             onClick={() => setShowClearanceHazards(!showClearanceHazards)}
-            className={`px-2.5 py-1.5 rounded-xl text-xs font-bold border transition flex items-center gap-1.5 backdrop-blur-md ${
+            className={`px-2.5 py-1.5 rounded-xl text-xs font-bold border transition flex items-center gap-1.5 backdrop-blur-md shadow-xs ${
               showClearanceHazards
-                ? 'bg-amber-950/80 text-amber-300 border-amber-500/50 shadow-md shadow-amber-500/20'
-                : 'bg-[#08140f]/90 text-slate-400 border-emerald-900/40 hover:text-slate-200'
+                ? 'bg-amber-50 text-amber-700 border-amber-300'
+                : 'bg-white/95 text-slate-500 border-slate-200 hover:text-slate-800'
             }`}
             title="Toggle Physical Road Clearances & Bridge Restriction Markers"
           >
-            <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+            <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
             <span className="text-[11px] font-mono">CLEARANCES</span>
           </button>
 
@@ -688,15 +688,15 @@ export default function RouteMap({
           <div className="relative">
             <button
               onClick={() => setShowLayerMenu(!showLayerMenu)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#08140f]/95 hover:bg-[#0c1f17] text-white text-xs font-semibold border border-emerald-500/40 shadow-lg backdrop-blur-md transition"
-              title="Switch Map Tiles (Google Maps / Dark Mode)"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/95 hover:bg-slate-50 text-slate-700 text-xs font-semibold border border-slate-200 shadow-xs backdrop-blur-md transition"
+              title="Switch Map Tiles (Light / Transit / Sat)"
             >
-              <Layers className="w-3.5 h-3.5 text-emerald-400" />
+              <Layers className="w-3.5 h-3.5 text-[#ea580c]" />
               <span className="hidden sm:inline">{currentTile.name}</span>
             </button>
 
             {showLayerMenu && (
-              <div className="absolute right-0 mt-1.5 p-1.5 rounded-xl bg-[#06120d]/95 border border-emerald-500/40 shadow-2xl backdrop-blur-md flex flex-col gap-1 w-48 animate-in fade-in z-[2000]">
+              <div className="absolute right-0 mt-1.5 p-1.5 rounded-xl bg-white border border-slate-200 shadow-xl backdrop-blur-md flex flex-col gap-1 w-48 animate-in fade-in z-[2000]">
                 {Object.entries(tileLayers).map(([key, item]) => (
                   <button
                     key={key}
@@ -706,13 +706,13 @@ export default function RouteMap({
                     }}
                     className={`px-2.5 py-1.5 rounded-lg text-left text-xs font-medium transition flex items-center justify-between ${
                       mapLayer === key
-                        ? 'bg-emerald-500/20 text-emerald-300 font-bold'
-                        : 'text-slate-300 hover:bg-emerald-950/40 hover:text-white'
+                        ? 'bg-orange-50 text-[#ea580c] font-bold'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                     }`}
                   >
                     <span>{item.name}</span>
                     {key.startsWith('google') && (
-                      <span className="text-[9px] px-1 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">G</span>
+                      <span className="text-[9px] px-1 py-0.2 rounded bg-amber-100 text-amber-700 border border-amber-200">G</span>
                     )}
                   </button>
                 ))}
@@ -1035,14 +1035,14 @@ export default function RouteMap({
           let lineOpacity = 0.55;
 
           if (isSelected) {
-            lineColor = isCompatible ? '#10b981' : '#f43f5e';
+            lineColor = isCompatible ? '#ea580c' : '#ef4444';
             lineWeight = 6;
             lineOpacity = 0.95;
           } else if (route.route_code === 'Route B') {
-            lineColor = '#f59e0b';
+            lineColor = '#f97316';
             lineOpacity = 0.65;
           } else if (route.route_code === 'Route C') {
-            lineColor = '#06b6d4';
+            lineColor = '#94a3b8';
             lineOpacity = 0.65;
           }
 

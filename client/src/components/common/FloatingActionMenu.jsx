@@ -7,8 +7,7 @@ import {
   Sliders,
   Bot,
   X,
-  Sparkles,
-  Compass
+  Sparkles
 } from 'lucide-react';
 
 export default function FloatingActionMenu({ onOpenAI = () => {} }) {
@@ -64,7 +63,7 @@ export default function FloatingActionMenu({ onOpenAI = () => {} }) {
     }
   };
 
-  // Actions stacked from bottom (nearest trigger) to top, matching Jitter design
+  // Actions stacked from bottom (nearest trigger) to top with White & Orange theme
   const actions = [
     {
       id: 'planner',
@@ -72,8 +71,10 @@ export default function FloatingActionMenu({ onOpenAI = () => {} }) {
       sublabel: 'Multi-Corridor AI Optimization',
       path: '/',
       icon: Navigation,
-      gradient: 'from-[#6d28d9] to-[#7c3aed]',
-      shadow: 'shadow-purple-900/40',
+      bg: 'bg-white',
+      border: 'border-orange-200',
+      iconColor: 'text-[#ea580c]',
+      shadow: 'shadow-md shadow-orange-500/10',
       active: location.pathname === '/'
     },
     {
@@ -82,8 +83,10 @@ export default function FloatingActionMenu({ onOpenAI = () => {} }) {
       sublabel: 'Real-time Telemetry & Clearance',
       path: '/monitor',
       icon: Activity,
-      gradient: 'from-[#7c3aed] to-[#8b5cf6]',
-      shadow: 'shadow-purple-800/40',
+      bg: 'bg-white',
+      border: 'border-orange-200',
+      iconColor: 'text-[#ea580c]',
+      shadow: 'shadow-md shadow-orange-500/10',
       active: location.pathname === '/monitor'
     },
     {
@@ -92,8 +95,10 @@ export default function FloatingActionMenu({ onOpenAI = () => {} }) {
       sublabel: 'Traffic, Road & Weight Stress Tests',
       path: '/simulator',
       icon: Sliders,
-      gradient: 'from-[#8b5cf6] to-[#a855f7]',
-      shadow: 'shadow-purple-700/40',
+      bg: 'bg-white',
+      border: 'border-orange-200',
+      iconColor: 'text-[#ea580c]',
+      shadow: 'shadow-md shadow-orange-500/10',
       active: location.pathname === '/simulator'
     },
     {
@@ -102,8 +107,10 @@ export default function FloatingActionMenu({ onOpenAI = () => {} }) {
       sublabel: 'Gemini Autonomous Assistant',
       type: 'ai',
       icon: Bot,
-      gradient: 'from-[#a855f7] to-[#c084fc]',
-      shadow: 'shadow-purple-600/40',
+      bg: 'bg-gradient-to-tr from-[#ea580c] via-[#f97316] to-[#fb923c]',
+      border: 'border-white/40',
+      iconColor: 'text-white',
+      shadow: 'shadow-lg shadow-orange-500/30',
       badge: 'GEMINI',
       active: false
     }
@@ -113,12 +120,12 @@ export default function FloatingActionMenu({ onOpenAI = () => {} }) {
     <div
       ref={menuRef}
       className="fixed bottom-6 right-6 z-40 flex flex-col items-end select-none pointer-events-auto"
-      aria-label="Floating Action Menu"
+      aria-label="Quick Mobility Floating Action Menu"
     >
       {/* Backdrop overlay when open to emphasize floating hierarchy */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/35 backdrop-blur-[2px] z-30 transition-opacity animate-in fade-in duration-200"
+          className="fixed inset-0 bg-slate-900/20 backdrop-blur-[2px] z-30 transition-opacity animate-in fade-in duration-200"
           onClick={() => setIsOpen(false)}
           aria-hidden="true"
         />
@@ -142,13 +149,13 @@ export default function FloatingActionMenu({ onOpenAI = () => {} }) {
                 {/* Action Pill Badge (Slides in from right) */}
                 <div
                   style={{ animationDelay: `${delayMs + 25}ms` }}
-                  className="jitter-pill-in hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-2xl glass-panel bg-[#08140f]/90 border border-purple-500/30 text-white shadow-xl shadow-black/50 group-hover:border-purple-400 group-hover:bg-[#121c17] transition-all duration-200 transform group-hover:-translate-x-1"
+                  className="jitter-pill-in hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-white/95 border border-slate-200 text-slate-800 shadow-lg shadow-slate-900/5 group-hover:border-orange-300 group-hover:bg-[#fff7ed] transition-all duration-200 transform group-hover:-translate-x-1"
                 >
                   <div className="flex flex-col text-right">
-                    <span className="text-xs font-heading font-bold text-white group-hover:text-purple-300 transition-colors flex items-center justify-end gap-1.5">
+                    <span className="text-xs font-heading font-bold text-slate-900 group-hover:text-[#ea580c] transition-colors flex items-center justify-end gap-1.5">
                       {act.label}
                       {act.badge && (
-                        <span className="text-[9px] font-mono px-1.5 py-0.2 rounded-full bg-purple-500/30 text-purple-200 border border-purple-400/40 font-extrabold uppercase">
+                        <span className="text-[9px] font-mono px-1.5 py-0.2 rounded-full bg-orange-100 text-[#ea580c] border border-orange-200 font-extrabold uppercase">
                           {act.badge}
                         </span>
                       )}
@@ -163,30 +170,30 @@ export default function FloatingActionMenu({ onOpenAI = () => {} }) {
                 <button
                   type="button"
                   aria-label={act.label}
-                  className={`w-12 h-12 rounded-full bg-gradient-to-tr ${act.gradient} ${act.shadow} shadow-lg border border-white/20 text-white flex items-center justify-center transition-all duration-200 transform group-hover:scale-110 group-hover:shadow-purple-500/50 group-active:scale-95 ${
-                    act.active ? 'ring-2 ring-amber-400 ring-offset-2 ring-offset-[#040907]' : ''
+                  className={`w-12 h-12 rounded-full ${act.bg} ${act.shadow} border ${act.border} flex items-center justify-center transition-all duration-200 transform group-hover:scale-110 group-hover:shadow-orange-500/30 group-active:scale-95 ${
+                    act.active ? 'ring-2 ring-[#ea580c] ring-offset-2 ring-offset-white' : ''
                   }`}
                 >
-                  <IconComponent className="w-5 h-5 text-white stroke-[2.2]" />
+                  <IconComponent className={`w-5 h-5 ${act.iconColor} stroke-[2.2]`} />
                 </button>
               </div>
             );
           })}
       </div>
 
-      {/* Main Trigger Floating Action Button */}
+      {/* Main Trigger Floating Action Button in White & Orange theme */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
         aria-label="Toggle Quick Mobility Menu"
-        className={`relative z-40 w-14 h-14 rounded-full bg-gradient-to-tr from-[#6d28d9] via-[#8b5cf6] to-[#a855f7] border border-white/25 text-white shadow-2xl shadow-purple-900/60 flex items-center justify-center transition-all duration-300 transform hover:scale-105 active:scale-95 ${
-          !isOpen ? 'jitter-ripple' : 'ring-2 ring-purple-300/60 shadow-purple-500/40'
+        className={`relative z-40 w-14 h-14 rounded-full bg-gradient-to-tr from-[#ea580c] via-[#f97316] to-[#fb923c] border-2 border-white/60 text-white shadow-xl shadow-orange-500/40 flex items-center justify-center transition-all duration-300 transform hover:scale-105 active:scale-95 ${
+          !isOpen ? 'ring-4 ring-orange-200/70' : 'ring-4 ring-orange-400/50'
         }`}
         title={isOpen ? 'Close Quick Menu (Esc)' : 'Quick Mobility Actions'}
       >
         {/* Subtle glowing halo */}
-        <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-purple-500/20 to-emerald-400/20 blur-md pointer-events-none" />
+        <div className="absolute inset-0 rounded-full bg-orange-500/25 blur-md pointer-events-none" />
 
         {/* Morphing Jitter Icon (Signature 4-circle grid morphing to dismiss X) */}
         <div
@@ -210,7 +217,7 @@ export default function FloatingActionMenu({ onOpenAI = () => {} }) {
         {!isOpen && (
           <span className="absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-gradient-to-tr from-amber-400 to-emerald-400 border-2 border-[#040907]" />
+            <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-gradient-to-tr from-amber-400 to-orange-400 border-2 border-white shadow-xs" />
           </span>
         )}
       </button>

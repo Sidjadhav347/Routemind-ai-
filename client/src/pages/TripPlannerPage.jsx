@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { tripApi, vehicleApi, cargoApi, routeApi } from '../services/api';
 import RouteMap from '../components/map/RouteMap';
+import { useAuth } from '../context/AuthContext';
 import {
   Navigation,
   Clock,
@@ -21,7 +22,11 @@ import {
   Compass,
   ArrowRight,
   Share2,
-  Radio
+  Radio,
+  Plus,
+  Route as RouteIcon,
+  MoreHorizontal,
+  ChevronRight
 } from 'lucide-react';
 import CoLoadingFeatureSection from '../components/coloading/CoLoadingFeatureSection';
 
@@ -75,8 +80,10 @@ const OPTIMIZATION_MODES = [
 ];
 
 export default function TripPlannerPage() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [networkMode, setNetworkMode] = useState('live'); // 'live' | 'traffic' | 'risk'
 
   // Form State
   const [originQuery, setOriginQuery] = useState('Mumbai, Maharashtra');
@@ -311,178 +318,322 @@ export default function TripPlannerPage() {
   const selectedVehicle = vehicles.find(v => v.id === selectedVehicleId);
   const selectedCargo = cargoList.find(c => c.id === selectedCargoId);
 
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-      {/* Top Same-Page Feature Switcher Pills */}
-      <div className="flex items-center gap-2 p-1.5 rounded-2xl glass-panel border border-emerald-900/50 bg-[#06120b] w-fit flex-wrap">
-        <button
-          type="button"
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-heading font-bold bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/30"
-        >
-          <Navigation className="w-3.5 h-3.5 fill-slate-950/20" />
-          <span>Route & Trip Planner</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => document.getElementById('coloading-feature')?.scrollIntoView({ behavior: 'smooth' })}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-heading font-bold text-amber-300 hover:text-white hover:bg-amber-950/30 transition border border-amber-500/30 shadow-sm shadow-amber-500/10"
-        >
-          <Share2 className="w-3.5 h-3.5 text-amber-400" />
-          <span>Co-Loading Marketplace Network</span>
-          <span className="text-[9px] uppercase px-1.5 py-0.2 rounded-full bg-amber-500/30 text-amber-200 font-extrabold">
-            Same-Page Feature
-          </span>
-        </button>
-      </div>
+  const userName = user?.name ? user.name.split(' ')[0] : 'Alex';
+  const formattedDate = new Date().toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' });
 
-      {/* Hero Showcase Banner Matching StinPort Global Trade Theme */}
-      <div className="relative glass-panel p-6 sm:p-8 rounded-3xl border border-emerald-500/25 overflow-hidden">
-        {/* Ambient Emerald Halo Glow */}
-        <div className="absolute -top-24 -right-24 w-96 h-96 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-        
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-          <div className="space-y-3 max-w-3xl">
+  return (
+    <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      {/* OPERATIONS OVERVIEW Hero Banner matching screenshot */}
+      <div className="relative bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-xs overflow-hidden">
+        {/* Aesthetic Background Elements: Concentric geometric orbital rings */}
+        <div className="aesthetic-rings-container">
+          <div className="aesthetic-ring-1" />
+          <div className="aesthetic-ring-2" />
+          <div className="aesthetic-ring-3" />
+        </div>
+
+        {/* Soft atmospheric orange radial gradient */}
+        <div className="absolute -top-12 -right-12 w-80 h-80 bg-gradient-to-bl from-orange-200/35 via-amber-100/20 to-transparent rounded-full blur-2xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+          <div className="space-y-1.5 max-w-2xl">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-heading font-extrabold tracking-widest px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 uppercase">
-                AI SMART MOBILITY GATEWAY
-              </span>
-              <span className="text-[10px] font-mono tracking-wider text-amber-400 font-bold uppercase hidden sm:inline">
-                • GLOBAL CORRIDOR ENGINE
+              <span className="w-1.5 h-4.5 bg-[#ea580c] rounded-full inline-block" />
+              <span className="text-[11px] font-heading font-extrabold uppercase tracking-widest text-slate-500">
+                OPERATIONS OVERVIEW
               </span>
             </div>
 
-            <h1 className="font-heading text-2xl sm:text-4xl lg:text-5xl font-extrabold uppercase tracking-tight text-white leading-none">
-              DESIGNING A DIGITAL GATEWAY FOR <span className="text-amber-400 font-black">GLOBAL TRADE</span>
+            <h1 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight">
+              Good morning, {userName}
             </h1>
 
-            <p className="text-xs sm:text-sm text-slate-300 font-medium leading-relaxed max-w-2xl">
-              AN INTELLIGENT TELEMETRY SYSTEM BUILT TO OPTIMIZE, CLEAR RESTRICTIONS, AND CONNECT <span className="text-emerald-400 font-bold">FREIGHT MARKETS.</span>
+            <p className="text-xs sm:text-sm text-slate-500 font-medium">
+              Here's how your network is performing across Benelux today.
             </p>
           </div>
 
-          {/* Metadata Specs Grid Matching Screenshot */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 lg:pt-0 border-t lg:border-t-0 lg:border-l border-emerald-900/40 lg:pl-6 text-[11px]">
-            <div>
-              <div className="text-[9px] font-mono uppercase tracking-widest text-emerald-400 font-bold">ROLE</div>
-              <div className="font-heading font-extrabold text-white mt-0.5">MOBILITY AI</div>
+          {/* Right Actions: Date Pill & "+ Plan a route" Button */}
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-200 shadow-xs text-xs font-semibold text-slate-700">
+              <Calendar className="w-4 h-4 text-slate-400" />
+              <span>{formattedDate}</span>
             </div>
-            <div>
-              <div className="text-[9px] font-mono uppercase tracking-widest text-emerald-400 font-bold">SCOPE</div>
-              <div className="font-heading font-extrabold text-white mt-0.5">HEAVY FREIGHT</div>
+
+            <button
+              type="button"
+              onClick={() => {
+                document.getElementById('route-planner-section')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#ea580c] to-[#f97316] hover:from-[#c2410c] hover:to-[#ea580c] text-white font-heading font-bold text-xs shadow-md shadow-orange-500/20 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+            >
+              <Plus className="w-4 h-4 stroke-[2.5]" />
+              <span>Plan a route</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* 4 Metric KPI Cards matching screenshot */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 1: Active routes */}
+        <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs flex flex-col justify-between hover:shadow-md transition">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-slate-500">Active routes</span>
+            <div className="w-8 h-8 rounded-xl bg-[#fff7ed] text-[#ea580c] flex items-center justify-center">
+              <RouteIcon className="w-4 h-4" />
             </div>
-            <div>
-              <div className="text-[9px] font-mono uppercase tracking-widest text-emerald-400 font-bold">FOCUS AREAS</div>
-              <div className="font-heading font-extrabold text-amber-400 mt-0.5">REROUTE ≥8m</div>
-            </div>
-            <div>
-              <div className="text-[9px] font-mono uppercase tracking-widest text-emerald-400 font-bold">STATUS</div>
-              <div className="font-heading font-extrabold text-emerald-400 mt-0.5 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                LIVE
-              </div>
+          </div>
+          <div className="my-2 flex items-baseline gap-1.5">
+            <span className="text-3xl font-heading font-black text-slate-900 tracking-tight">42</span>
+            <span className="text-xs font-medium text-slate-400">live now</span>
+          </div>
+          <div className="flex items-end justify-between pt-1">
+            <span className="text-xs font-semibold text-emerald-600 flex items-center gap-1">
+              <span>↑ 8.2%</span>
+              <span className="text-slate-400 font-normal">vs. last Tuesday</span>
+            </span>
+            {/* Mini Bar Chart Graphic in Orange */}
+            <div className="flex items-end gap-0.5 h-5">
+              <div className="w-1 bg-orange-200 rounded-t h-2" />
+              <div className="w-1 bg-orange-300 rounded-t h-3" />
+              <div className="w-1 bg-orange-400 rounded-t h-2.5" />
+              <div className="w-1 bg-orange-400 rounded-t h-4" />
+              <div className="w-1 bg-orange-500 rounded-t h-3.5" />
+              <div className="w-1 bg-orange-500 rounded-t h-5" />
+              <div className="w-1 bg-[#ea580c] rounded-t h-4.5" />
+              <div className="w-1 bg-[#ea580c] rounded-t h-5" />
             </div>
           </div>
         </div>
 
-        {/* Quick Corridor Presets Bar */}
-        <div className="mt-6 pt-4 border-t border-emerald-900/30 flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-emerald-400 font-bold">FREIGHT CORRIDORS:</span>
-            {PRESET_CORRIDORS.map((preset, i) => (
-              <button
-                key={i}
-                onClick={() => handleApplyPreset(preset)}
-                className="text-xs px-3.5 py-1.5 rounded-full bg-[#08140f] hover:bg-emerald-950/60 text-slate-300 hover:text-emerald-300 border border-emerald-900/60 hover:border-emerald-500/50 transition font-heading font-semibold"
-              >
-                {preset.name}
-              </button>
-            ))}
+        {/* Card 2: On-time delivery */}
+        <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs flex flex-col justify-between hover:shadow-md transition">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-slate-500">On-time delivery</span>
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <Clock className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="my-2 flex items-baseline gap-1.5">
+            <span className="text-3xl font-heading font-black text-slate-900 tracking-tight">94.6%</span>
+          </div>
+          <div className="space-y-1.5 pt-1">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-semibold text-emerald-600">↑ 2.1% above target</span>
+            </div>
+            {/* Green Progress Bar */}
+            <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+              <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: '94.6%' }} />
+            </div>
+          </div>
+        </div>
+
+        {/* Card 3: Distance saved */}
+        <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs flex flex-col justify-between hover:shadow-md transition">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-slate-500">Distance saved</span>
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <Sparkles className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="my-2 flex items-baseline gap-1.5">
+            <span className="text-3xl font-heading font-black text-slate-900 tracking-tight">1,284</span>
+            <span className="text-xs font-medium text-slate-400">km</span>
+          </div>
+          <div className="flex items-end justify-between pt-1">
+            <span className="text-xs font-semibold text-emerald-700">
+              €1,926 <span className="text-slate-400 font-normal">estimated savings</span>
+            </span>
+            {/* Mini Bar Chart in Emerald */}
+            <div className="flex items-end gap-0.5 h-5">
+              <div className="w-1 bg-emerald-200 rounded-t h-2" />
+              <div className="w-1 bg-emerald-300 rounded-t h-2.5" />
+              <div className="w-1 bg-emerald-300 rounded-t h-3.5" />
+              <div className="w-1 bg-emerald-400 rounded-t h-3" />
+              <div className="w-1 bg-emerald-500 rounded-t h-4" />
+              <div className="w-1 bg-emerald-500 rounded-t h-4.5" />
+              <div className="w-1 bg-emerald-600 rounded-t h-5" />
+            </div>
+          </div>
+        </div>
+
+        {/* Card 4: Attention needed */}
+        <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs flex flex-col justify-between hover:shadow-md transition">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-slate-500">Attention needed</span>
+            <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+              <AlertTriangle className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="my-2 flex items-baseline gap-1.5">
+            <span className="text-3xl font-heading font-black text-slate-900 tracking-tight">5</span>
+            <span className="text-xs font-medium text-slate-400">exceptions</span>
+          </div>
+          <div className="space-y-1.5 pt-1">
+            <div className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+              <span className="text-rose-600">2 high priority</span>
+              <span className="text-slate-300">·</span>
+              <span className="text-amber-600">3 moderate</span>
+            </div>
+            {/* Segmented status line */}
+            <div className="flex items-center gap-1 h-1.5 w-full">
+              <div className="w-2/5 bg-rose-500 h-1.5 rounded-full" />
+              <div className="w-3/5 bg-amber-400 h-1.5 rounded-full" />
+            </div>
           </div>
         </div>
       </div>
 
       {errorMsg && (
-        <div className="p-4 rounded-2xl bg-rose-950/60 border border-rose-800 text-rose-200 text-sm flex items-center gap-3">
-          <AlertTriangle className="w-5 h-5 text-rose-400 flex-shrink-0" />
+        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs sm:text-sm flex items-center gap-3">
+          <AlertTriangle className="w-5 h-5 text-rose-600 flex-shrink-0" />
           <span>{errorMsg}</span>
         </div>
       )}
 
-      {/* Main Grid: Input Form vs Map Display */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column: Constraints & Parameters (5 cols) */}
-        <div className="lg:col-span-5 space-y-5">
-          <div className="glass-panel p-5 rounded-3xl border border-slate-800 space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-emerald-400" />
-                1. Origin, Destination &amp; Waypoints
-              </h2>
-              {pinMode && (
-                <span className="text-[10px] font-bold text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded-full border border-amber-500/40 animate-pulse">
-                  Pin Mode Active
-                </span>
-              )}
+      {/* Main Two-Column Operations Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left Column: Live Network Map & Route Planner Engine (8 cols) */}
+        <div className="lg:col-span-8 space-y-6">
+          {/* Card: Live Network Map */}
+          <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/90 shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h2 className="font-heading font-extrabold text-lg text-slate-900 tracking-tight">
+                  Live network
+                </h2>
+                <p className="text-xs text-slate-500 font-medium">
+                  42 active routes · Updated just now
+                </p>
+              </div>
+
+              {/* Toggle Pills: [Live] [Traffic] [Risk] */}
+              <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl w-fit">
+                {['live', 'traffic', 'risk'].map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setNetworkMode(m)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-heading font-bold capitalize transition ${
+                      networkMode === m
+                        ? 'bg-white text-slate-900 shadow-xs'
+                        : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    {m}
+                  </button>
+                ))}
+              </div>
             </div>
 
+            {/* Map Container with Floating Truck Tag from Screenshot */}
+            <div className="relative w-full h-[500px] rounded-2xl overflow-hidden border border-slate-200">
+              {/* Floating Vehicle Status Box matching Screenshot */}
+              <div className="absolute top-4 left-4 z-[900] bg-white/95 backdrop-blur-md rounded-2xl p-3.5 border border-slate-200/90 shadow-lg max-w-xs pointer-events-auto">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-orange-100 text-[#ea580c] flex items-center justify-center shrink-0 shadow-xs">
+                      <Truck className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-heading font-bold text-xs text-slate-900">TRK-104</span>
+                        <span className="text-[10px] text-slate-400 font-mono">Route RM-2847</span>
+                      </div>
+                      <div className="text-[11px] font-semibold text-slate-600 mt-0.5 truncate max-w-[150px]">
+                        {originQuery.split(',')[0]} → {destinationQuery.split(',')[0]}
+                      </div>
+                    </div>
+                  </div>
+
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold shrink-0">
+                    On time
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 mt-2.5 pt-2 border-t border-slate-100 text-[11px]">
+                  <div>
+                    <div className="text-slate-400 text-[9px] uppercase font-mono">ETA</div>
+                    <div className="font-bold text-slate-800">11:42</div>
+                  </div>
+                  <div>
+                    <div className="text-slate-400 text-[9px] uppercase font-mono">Remaining</div>
+                    <div className="font-bold text-slate-800">148 km</div>
+                  </div>
+                  <div>
+                    <div className="text-slate-400 text-[9px] uppercase font-mono">Driver</div>
+                    <div className="font-bold text-slate-800">M. Visser</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* RouteMap Component */}
+              <RouteMap
+                origin={originCoord}
+                destination={destCoord}
+                waypoints={waypoints}
+                routes={routes}
+                activeRouteId={selectedRouteId}
+                onSelectRoute={(r) => setSelectedRouteId(r.id)}
+                onOriginChange={handleOriginPinned}
+                onDestinationChange={handleDestinationPinned}
+                onWaypointsChange={handleWaypointsChanged}
+                externalPinMode={pinMode}
+                onPinModeChange={setPinMode}
+                allowPinning={true}
+              />
+            </div>
+          </div>
+
+          {/* Interactive Route Planning Console Form */}
+          <div id="route-planner-section" className="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-xs space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-4.5 bg-[#ea580c] rounded-full inline-block" />
+                <h3 className="font-heading font-bold text-base text-slate-900">
+                  Route Planning &amp; Corridor Engine
+                </h3>
+              </div>
+              <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-orange-50 text-[#ea580c] border border-orange-200 font-bold">
+                OPTIMIZER ACTIVE
+              </span>
+            </div>
+
+            {/* Step 1: Origin, Destination & Waypoints */}
             <div className="space-y-3">
-              {/* Departure Origin */}
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                    <span>Departure Origin (Pin A)</span>
-                  </label>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (!navigator.geolocation) {
-                          alert('Geolocation is not supported by your browser.');
-                          return;
-                        }
-                        navigator.geolocation.getCurrentPosition(
-                          async (pos) => {
-                            const lat = parseFloat(pos.coords.latitude.toFixed(6));
-                            const lng = parseFloat(pos.coords.longitude.toFixed(6));
-                            try {
-                              const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=14`, {
-                                headers: { 'User-Agent': 'RouteMind-Map-App/1.0' }
-                              });
-                              const data = await res.json();
-                              const address = data?.display_name ? data.display_name.split(', ').slice(0, 3).join(', ') : `Current Location (${lat}, ${lng})`;
-                              handleOriginPinned({ lat, lng, address });
-                            } catch {
-                              handleOriginPinned({ lat, lng, address: `Current Location (${lat}, ${lng})` });
-                            }
-                          },
-                          (err) => alert('Unable to retrieve GPS position: ' + err.message),
-                          { enableHighAccuracy: true, timeout: 8000 }
-                        );
-                      }}
-                      className="text-[11px] px-2.5 py-0.5 rounded-lg border border-cyan-500/40 text-cyan-300 hover:bg-cyan-950/40 flex items-center gap-1 transition font-medium"
-                      title="Use current GPS location as departure origin"
-                    >
-                      <Radio className="w-3 h-3 text-cyan-400" />
-                      <span>My GPS</span>
-                    </button>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-heading font-bold text-slate-700 flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-[#ea580c]" />
+                  <span>1. Origin &amp; Destination Waypoints</span>
+                </label>
+                {pinMode && (
+                  <span className="text-[10px] font-bold text-orange-600 bg-orange-50 border border-orange-200 px-2 py-0.5 rounded-full animate-pulse">
+                    Map Pin Mode Active ({pinMode})
+                  </span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Departure Origin */}
+                <div>
+                  <div className="flex items-center justify-between mb-1 text-[11px]">
+                    <span className="font-semibold text-slate-600 flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-[#ea580c]" />
+                      <span>Departure (Pin A)</span>
+                    </span>
                     <button
                       type="button"
                       onClick={() => setPinMode(pinMode === 'origin' ? null : 'origin')}
-                      className={`text-[11px] px-2.5 py-0.5 rounded-lg border flex items-center gap-1 transition font-medium ${
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded transition ${
                         pinMode === 'origin'
-                          ? 'bg-emerald-500 text-slate-950 font-bold border-emerald-400 shadow-emerald-glow'
-                          : 'text-emerald-400 border-emerald-500/30 hover:bg-emerald-950/40'
+                          ? 'bg-[#ea580c] text-white'
+                          : 'text-[#ea580c] hover:bg-orange-50'
                       }`}
                     >
-                      <MapPin className="w-3 h-3" />
-                      <span>{pinMode === 'origin' ? 'Click Map to Place' : 'Pin on Map'}</span>
+                      {pinMode === 'origin' ? 'Click Map' : 'Pin on Map'}
                     </button>
                   </div>
-                </div>
-                <div className="relative">
                   <input
                     type="text"
                     value={originQuery}
@@ -495,71 +646,30 @@ export default function TripPlannerPage() {
                         } catch (e) {}
                       }
                     }}
-                    placeholder="Enter city or click 'Pin on Map'..."
-                    className="w-full bg-[#06120c] border border-emerald-500/20 rounded-xl px-3.5 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-400 transition"
+                    placeholder="Enter departure city..."
+                    className="w-full bg-slate-50 hover:bg-slate-100/60 focus:bg-white border border-slate-200 focus:border-[#ea580c] focus:ring-2 focus:ring-orange-500/10 rounded-xl px-3.5 py-2 text-xs text-slate-900 transition"
                   />
-                  <span className="absolute right-3 top-2 text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                    A
-                  </span>
                 </div>
-                {originCoord?.lat && (
-                  <div className="text-[10px] text-slate-400 mt-1 font-mono flex items-center gap-1">
-                    <span>GPS: {originCoord.lat.toFixed(4)}, {originCoord.lng.toFixed(4)} (Draggable on map)</span>
-                  </div>
-                )}
-              </div>
 
-              {/* Waypoint Stops (Optional) */}
-              {waypoints.length > 0 && (
-                <div className="p-2.5 rounded-xl bg-[#05110b] border border-indigo-500/20 space-y-2">
-                  <div className="flex items-center justify-between text-[11px]">
-                    <span className="font-bold text-indigo-300">Waypoint Stops ({waypoints.length})</span>
+                {/* Arrival Destination */}
+                <div>
+                  <div className="flex items-center justify-between mb-1 text-[11px]">
+                    <span className="font-semibold text-slate-600 flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-rose-500" />
+                      <span>Destination (Pin B)</span>
+                    </span>
                     <button
                       type="button"
-                      onClick={() => setWaypoints([])}
-                      className="text-rose-400 hover:underline"
+                      onClick={() => setPinMode(pinMode === 'destination' ? null : 'destination')}
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded transition ${
+                        pinMode === 'destination'
+                          ? 'bg-rose-500 text-white'
+                          : 'text-rose-600 hover:bg-rose-50'
+                      }`}
                     >
-                      Clear all
+                      {pinMode === 'destination' ? 'Click Map' : 'Pin on Map'}
                     </button>
                   </div>
-                  {waypoints.map((wp, idx) => (
-                    <div key={idx} className="flex items-center justify-between text-xs p-1.5 rounded-lg bg-[#081810] border border-emerald-900/40">
-                      <span className="text-slate-300 truncate max-w-[200px]">
-                        W{idx + 1}: {wp.address || `${wp.lat.toFixed(4)}, ${wp.lng.toFixed(4)}`}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleWaypointsChanged(waypoints.filter((_, i) => i !== idx))}
-                        className="text-slate-400 hover:text-rose-400 p-0.5"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Arrival Destination */}
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-rose-400" />
-                    <span>Arrival Destination (Pin B)</span>
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => setPinMode(pinMode === 'destination' ? null : 'destination')}
-                    className={`text-[11px] px-2.5 py-0.5 rounded-lg border flex items-center gap-1 transition font-medium ${
-                      pinMode === 'destination'
-                        ? 'bg-rose-500 text-white font-bold border-rose-400 shadow-rose-glow'
-                        : 'text-rose-400 border-rose-500/30 hover:bg-rose-950/40'
-                    }`}
-                  >
-                    <MapPin className="w-3 h-3" />
-                    <span>{pinMode === 'destination' ? 'Click Map to Place' : 'Pin on Map'}</span>
-                  </button>
-                </div>
-                <div className="relative">
                   <input
                     type="text"
                     value={destinationQuery}
@@ -572,126 +682,106 @@ export default function TripPlannerPage() {
                         } catch (e) {}
                       }
                     }}
-                    placeholder="Enter delivery location or click 'Pin on Map'..."
-                    className="w-full bg-[#06120c] border border-emerald-500/20 rounded-xl px-3.5 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-400 transition"
+                    placeholder="Enter destination city..."
+                    className="w-full bg-slate-50 hover:bg-slate-100/60 focus:bg-white border border-slate-200 focus:border-[#ea580c] focus:ring-2 focus:ring-orange-500/10 rounded-xl px-3.5 py-2 text-xs text-slate-900 transition"
                   />
-                  <span className="absolute right-3 top-2 text-[10px] font-bold px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/30">
-                    B
-                  </span>
                 </div>
-                {destCoord?.lat && (
-                  <div className="text-[10px] text-slate-400 mt-1 font-mono flex items-center gap-1">
-                    <span>GPS: {destCoord.lat.toFixed(4)}, {destCoord.lng.toFixed(4)} (Draggable on map)</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Vehicle & Cargo Pickers */}
-            <div className="pt-2 border-t border-slate-800/80 space-y-3">
-              <h2 className="text-sm font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                <Truck className="w-4 h-4 text-indigo-400" />
-                2. Fleet Vehicle & Cargo Load
-              </h2>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1">Assigned Vehicle</label>
-                <select
-                  value={selectedVehicleId}
-                  onChange={(e) => setSelectedVehicleId(e.target.value)}
-                  className="w-full bg-slate-900/90 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition"
-                >
-                  {vehicles.map(v => (
-                    <option key={v.id} value={v.id}>
-                      {v.name} ({v.type}) — {v.height_m}m Tall • Max {v.max_weight_capacity_kg}kg
-                    </option>
-                  ))}
-                </select>
-
-                {selectedVehicle && (
-                  <div className="mt-2 p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80 text-[11px] grid grid-cols-2 gap-2 text-slate-400">
-                    <div>Height: <span className="text-slate-200 font-semibold">{selectedVehicle.height_m}m</span></div>
-                    <div>Length: <span className="text-slate-200 font-semibold">{selectedVehicle.length_m}m</span></div>
-                    <div>Tare Weight: <span className="text-slate-200 font-semibold">{selectedVehicle.tare_weight_kg}kg</span></div>
-                    <div>Fuel Economy: <span className="text-slate-200 font-semibold">{selectedVehicle.fuel_efficiency_km_l} km/L</span></div>
-                  </div>
-                )}
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1">Cargo Consignment Template</label>
-                <select
-                  value={selectedCargoId}
-                  onChange={(e) => handleCargoSelection(e.target.value)}
-                  className="w-full bg-slate-900/90 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition"
-                >
-                  <option value="">Custom / Direct Entry</option>
-                  {cargoList.map(c => (
-                    <option key={c.id} value={c.id}>
-                      {c.name} ({c.weight_kg} kg, {c.volume_m3 || 10} m³) • {c.priority}
-                    </option>
-                  ))}
-                </select>
-
-                {/* Explicit Real Weight & Volume Inputs (Requirement 3 & 9) */}
-                <div className="grid grid-cols-2 gap-2 mt-2">
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-400 mb-1">
-                      Shipment Weight (kg)
-                    </label>
-                    <input
-                      type="number"
-                      value={cargoWeight}
-                      onChange={(e) => setCargoWeight(e.target.value)}
-                      min="1"
-                      step="50"
-                      className="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl px-3 py-1.5 text-xs text-slate-100 font-mono"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-400 mb-1">
-                      Cargo Volume (m³)
-                    </label>
-                    <input
-                      type="number"
-                      value={cargoVolume}
-                      onChange={(e) => setCargoVolume(e.target.value)}
-                      min="0.5"
-                      step="0.5"
-                      className="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl px-3 py-1.5 text-xs text-slate-100 font-mono"
-                    />
-                  </div>
-                </div>
-
-                {selectedVehicle && (
-                  <div className="mt-2 space-y-1.5">
-                    <div className="p-2 rounded-xl bg-indigo-950/30 border border-indigo-800/40 text-[11px] flex items-center justify-between text-indigo-300">
-                      <span>Total Gross Load:</span>
-                      <span className="font-bold text-white">
-                        {(selectedVehicle.tare_weight_kg + (parseFloat(cargoWeight) || 0)).toLocaleString()} kg
-                        ({((selectedVehicle.tare_weight_kg + (parseFloat(cargoWeight) || 0)) / 1000).toFixed(2)} Tonnes)
+              {/* Waypoints display if any */}
+              {waypoints.length > 0 && (
+                <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between flex-wrap gap-2 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-slate-700">Waypoints ({waypoints.length}):</span>
+                    {waypoints.map((wp, i) => (
+                      <span key={i} className="bg-white border border-slate-200 px-2 py-0.5 rounded-md text-[11px] text-slate-700 font-mono">
+                        W{i + 1}: {wp.address || `${wp.lat.toFixed(2)}, ${wp.lng.toFixed(2)}`}
                       </span>
-                    </div>
-
-                    {/* Dynamic Overload Warning */}
-                    {parseFloat(cargoWeight) > selectedVehicle.max_weight_capacity_kg && (
-                      <div className="p-2 rounded-xl bg-rose-950/70 border border-rose-800 text-rose-300 text-[11px] flex items-start gap-1.5 font-semibold">
-                        <AlertTriangle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
-                        <span>
-                          Vehicle Payload Exceeded! Weight ({parseFloat(cargoWeight).toLocaleString()} kg) exceeds maximum payload capacity ({selectedVehicle.max_weight_capacity_kg.toLocaleString()} kg).
-                        </span>
-                      </div>
-                    )}
+                    ))}
                   </div>
-                )}
+                  <button
+                    type="button"
+                    onClick={() => setWaypoints([])}
+                    className="text-rose-600 hover:underline text-[11px] font-bold"
+                  >
+                    Clear All
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Step 2: Fleet Vehicle & Cargo Load */}
+            <div className="space-y-3 pt-3 border-t border-slate-100">
+              <label className="text-xs font-heading font-bold text-slate-700 flex items-center gap-1.5">
+                <Truck className="w-3.5 h-3.5 text-[#ea580c]" />
+                <span>2. Fleet Vehicle &amp; Cargo Specifications</span>
+              </label>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] text-slate-500 font-medium mb-1">Assigned Commercial Vehicle</label>
+                  <select
+                    value={selectedVehicleId}
+                    onChange={(e) => setSelectedVehicleId(e.target.value)}
+                    className="w-full bg-slate-50 hover:bg-slate-100/60 focus:bg-white border border-slate-200 focus:border-[#ea580c] rounded-xl px-3 py-2 text-xs text-slate-900 transition"
+                  >
+                    {vehicles.map(v => (
+                      <option key={v.id} value={v.id}>
+                        {v.name} ({v.type}) — {v.height_m}m Tall • Max {v.max_weight_capacity_kg}kg
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] text-slate-500 font-medium mb-1">Cargo Consignment</label>
+                  <select
+                    value={selectedCargoId}
+                    onChange={(e) => handleCargoSelection(e.target.value)}
+                    className="w-full bg-slate-50 hover:bg-slate-100/60 focus:bg-white border border-slate-200 focus:border-[#ea580c] rounded-xl px-3 py-2 text-xs text-slate-900 transition"
+                  >
+                    <option value="">Custom / Direct Entry</option>
+                    {cargoList.map(c => (
+                      <option key={c.id} value={c.id}>
+                        {c.name} ({c.weight_kg} kg, {c.volume_m3 || 10} m³) • {c.priority}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Weight & Volume Inputs */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] text-slate-500 font-medium mb-1">Weight (kg)</label>
+                  <input
+                    type="number"
+                    value={cargoWeight}
+                    onChange={(e) => setCargoWeight(e.target.value)}
+                    className="w-full bg-slate-50 focus:bg-white border border-slate-200 focus:border-[#ea580c] rounded-xl px-3 py-1.5 text-xs text-slate-900 font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] text-slate-500 font-medium mb-1">Volume (m³)</label>
+                  <input
+                    type="number"
+                    value={cargoVolume}
+                    onChange={(e) => setCargoVolume(e.target.value)}
+                    className="w-full bg-slate-50 focus:bg-white border border-slate-200 focus:border-[#ea580c] rounded-xl px-3 py-1.5 text-xs text-slate-900 font-mono"
+                  />
+                </div>
               </div>
             </div>
 
-            {/* Optimization Objective Selector */}
-            <div className="pt-2 border-t border-slate-800/80 space-y-2">
-              <label className="block text-xs font-semibold text-slate-400">3. Optimization Objective</label>
-              <div className="grid grid-cols-2 gap-2">
-                {OPTIMIZATION_MODES.map(mode => {
+            {/* Step 3: Optimization Objectives */}
+            <div className="space-y-2 pt-3 border-t border-slate-100">
+              <label className="text-xs font-heading font-bold text-slate-700 flex items-center gap-1.5">
+                <Compass className="w-3.5 h-3.5 text-[#ea580c]" />
+                <span>3. Optimization Objective</span>
+              </label>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {OPTIMIZATION_MODES.map((mode) => {
                   const Icon = mode.icon;
                   const isSelected = optimizationMode === mode.id;
                   return (
@@ -701,12 +791,12 @@ export default function TripPlannerPage() {
                       onClick={() => setOptimizationMode(mode.id)}
                       className={`p-2.5 rounded-xl border text-left transition flex flex-col gap-1 ${
                         isSelected
-                          ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-md shadow-indigo-500/20'
-                          : 'bg-slate-900/70 border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                          ? 'bg-[#fff7ed] border-[#ea580c] text-[#ea580c] shadow-xs'
+                          : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                       }`}
                     >
                       <div className="flex items-center gap-1.5 font-bold text-xs">
-                        <Icon className={`w-3.5 h-3.5 ${isSelected ? 'text-indigo-400' : 'text-slate-500'}`} />
+                        <Icon className={`w-3.5 h-3.5 ${isSelected ? 'text-[#ea580c]' : 'text-slate-400'}`} />
                         <span>{mode.label}</span>
                       </div>
                       <div className="text-[10px] text-slate-500 line-clamp-1">{mode.desc}</div>
@@ -716,178 +806,97 @@ export default function TripPlannerPage() {
               </div>
             </div>
 
-            {/* Deadline & Budget */}
-            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-800/80">
+            {/* Step 4: Deadline & Budget + Submit Button */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-slate-100">
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1">Target Arrival SLA</label>
+                <label className="block text-[11px] text-slate-500 font-medium mb-1">Target Arrival SLA</label>
                 <input
                   type="time"
                   value={desiredDeadline}
                   onChange={(e) => setDesiredDeadline(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-50 focus:bg-white border border-slate-200 focus:border-[#ea580c] rounded-xl px-3 py-2 text-xs text-slate-900"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1">Budget Ceiling (₹)</label>
+                <label className="block text-[11px] text-slate-500 font-medium mb-1">Budget Ceiling (₹)</label>
                 <input
                   type="number"
                   value={budget}
                   onChange={(e) => setBudget(e.target.value)}
                   placeholder="2000"
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-50 focus:bg-white border border-slate-200 focus:border-[#ea580c] rounded-xl px-3 py-2 text-xs text-slate-900"
                 />
               </div>
             </div>
 
-            {/* Submit Button - Glowing Emerald Pill with progressive loading step */}
+            {/* Submit Action Button */}
             <button
               onClick={handleGenerateRoutes}
               disabled={loading}
-              className="w-full py-4 px-6 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 hover:from-emerald-400 hover:to-emerald-300 text-slate-950 font-heading font-extrabold text-sm uppercase tracking-wider shadow-emerald-glow hover:shadow-emerald-glow-hover transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-[#ea580c] via-[#f97316] to-[#fb923c] hover:from-[#c2410c] hover:to-[#ea580c] text-white font-heading font-extrabold text-sm uppercase tracking-wider shadow-md shadow-orange-500/25 transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
-                  <Sparkles className="w-4 h-4 animate-spin text-slate-950" />
+                  <Sparkles className="w-4 h-4 animate-spin text-white" />
                   <span className="truncate">{LOADING_STEPS[loadingStep]}</span>
                 </>
               ) : (
                 <>
-                  <Navigation className="w-4 h-4 fill-slate-950/20" />
-                  <span>Generate & Optimize Routes</span>
+                  <Navigation className="w-4 h-4 fill-white/20" />
+                  <span>Generate &amp; Optimize Routes</span>
                 </>
               )}
             </button>
           </div>
-        </div>
-
-        {/* Right Column: Interactive Map & Live Corridor View (7 cols) */}
-        <div className="lg:col-span-7 flex flex-col gap-4">
-          {/* Location Pinning Controls Bar */}
-          <div className="flex items-center justify-between gap-3 p-3 rounded-2xl glass-panel border border-emerald-500/30 bg-[#08140f]/80 flex-wrap">
-            <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-emerald-400" />
-              <span className="text-xs font-heading font-bold text-slate-200 uppercase tracking-wide">
-                Pin Location:
-              </span>
-              <span className="text-[11px] text-slate-400">
-                {pinMode ? `Active: Click map to place ${pinMode.toUpperCase()}` : 'Select a mode to pin on map'}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setPinMode(pinMode === 'origin' ? null : 'origin')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition ${
-                  pinMode === 'origin'
-                    ? 'bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/40 ring-2 ring-emerald-300'
-                    : 'bg-emerald-950/40 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-900/40'
-                }`}
-              >
-                <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-                <span>Pin Origin (A)</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setPinMode(pinMode === 'destination' ? null : 'destination')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition ${
-                  pinMode === 'destination'
-                    ? 'bg-rose-500 text-white font-bold shadow-md shadow-rose-500/40 ring-2 ring-rose-300'
-                    : 'bg-rose-950/40 text-rose-300 border border-rose-500/40 hover:bg-rose-900/40'
-                }`}
-              >
-                <span className="w-2 h-2 rounded-full bg-rose-400"></span>
-                <span>Pin Dest (B)</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setPinMode(pinMode === 'waypoint' ? null : 'waypoint')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition ${
-                  pinMode === 'waypoint'
-                    ? 'bg-purple-500 text-white font-bold shadow-md shadow-purple-500/40 ring-2 ring-purple-300'
-                    : 'bg-purple-950/40 text-purple-300 border border-purple-500/40 hover:bg-purple-900/40'
-                }`}
-              >
-                <span className="w-2 h-2 rounded-full bg-purple-400"></span>
-                <span>+ Waypoint</span>
-              </button>
-              {pinMode && (
-                <button
-                  type="button"
-                  onClick={() => setPinMode(null)}
-                  className="px-2 py-1 text-xs text-slate-400 hover:text-white"
-                  title="Cancel Pin Mode"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="w-full h-[500px] rounded-3xl overflow-hidden shadow-2xl border border-emerald-900/40">
-            <RouteMap
-              origin={originCoord}
-              destination={destCoord}
-              waypoints={waypoints}
-              routes={routes}
-              activeRouteId={selectedRouteId}
-              onSelectRoute={(r) => setSelectedRouteId(r.id)}
-              onOriginChange={handleOriginPinned}
-              onDestinationChange={handleDestinationPinned}
-              onWaypointsChange={handleWaypointsChanged}
-              externalPinMode={pinMode}
-              onPinModeChange={setPinMode}
-              allowPinning={true}
-            />
-          </div>
 
           {/* AI Route Explanation Card (Shown when routes are generated) */}
           {aiExplanation && activeRoute && (
-            <div className="glass-panel p-5 rounded-3xl border border-emerald-500/30 bg-emerald-950/20 shadow-xl space-y-3 animate-in fade-in duration-300">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-500 flex items-center justify-center shadow-md shadow-emerald-500/40">
-                    <Sparkles className="w-4 h-4 text-slate-950" />
+            <div className="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-xs space-y-4 animate-in fade-in">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-orange-100 text-[#ea580c] flex items-center justify-center shadow-xs">
+                    <Sparkles className="w-4 h-4" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-sm text-indigo-200">AI Route Recommendation</h3>
-                    <div className="text-[11px] text-slate-400">Grounded Mobility Reasoning Analysis</div>
+                    <h3 className="font-heading font-bold text-sm text-slate-900">AI Route Recommendation</h3>
+                    <div className="text-[11px] text-slate-500">Autonomous Telemetry &amp; Clearance Reasoning</div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold">
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold">
                   <ShieldCheck className="w-3.5 h-3.5" />
                   <span>{aiExplanation.confidence}% Confidence</span>
                 </div>
               </div>
 
-              <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800 text-xs sm:text-sm text-slate-200 leading-relaxed font-medium">
+              <div className="p-4 rounded-2xl bg-orange-50/60 border border-orange-200/70 text-xs sm:text-sm text-slate-800 leading-relaxed font-medium">
                 "{aiExplanation.reason}"
               </div>
 
               {/* Key Benefits & Warnings */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                <div className="space-y-1.5">
-                  <div className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
+                <div className="space-y-1.5 p-3 rounded-2xl bg-slate-50 border border-slate-100">
+                  <div className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                     Key Transit Advantages
                   </div>
                   {aiExplanation.benefits?.slice(0, 2).map((b, i) => (
-                    <div key={i} className="text-xs text-slate-300 flex items-start gap-1.5">
-                      <span className="text-emerald-400">•</span>
+                    <div key={i} className="text-xs text-slate-600 flex items-start gap-1.5">
+                      <span className="text-emerald-500">•</span>
                       <span>{b}</span>
                     </div>
                   ))}
                 </div>
 
-                <div className="space-y-1.5">
-                  <div className="text-[11px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1">
-                    <AlertTriangle className="w-3.5 h-3.5" />
+                <div className="space-y-1.5 p-3 rounded-2xl bg-slate-50 border border-slate-100">
+                  <div className="text-[11px] font-bold text-amber-700 uppercase tracking-wider flex items-center gap-1">
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
                     Advisory Constraints
                   </div>
                   {aiExplanation.warnings?.slice(0, 2).map((w, i) => (
-                    <div key={i} className="text-xs text-slate-300 flex items-start gap-1.5">
-                      <span className="text-amber-400">•</span>
+                    <div key={i} className="text-xs text-slate-600 flex items-start gap-1.5">
+                      <span className="text-amber-500">•</span>
                       <span>{w}</span>
                     </div>
                   ))}
@@ -895,223 +904,365 @@ export default function TripPlannerPage() {
               </div>
             </div>
           )}
-        </div>
-      </div>
 
-      {/* Comparative Route Cards (Section 11) */}
-      {routes.length > 0 && (
-        <div className="space-y-4 pt-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h2 className="text-lg font-heading font-extrabold text-white tracking-tight flex items-center gap-2 uppercase">
-                <Layers className="w-5 h-5 text-emerald-400" />
-                Candidate Corridor Comparison
-              </h2>
-              <p className="text-xs text-slate-400">
-                Evaluating transit speed, toll tariffs, fuel efficiency, and structural bridge clearances.
-              </p>
+          {/* Candidate Corridor Comparison Cards */}
+          {routes.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-lg font-heading font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                    <Layers className="w-5 h-5 text-[#ea580c]" />
+                    Candidate Corridor Comparison
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    Evaluating transit duration, tolls, fuel efficiency, and road clearances.
+                  </p>
+                </div>
+
+                {generatedTrip && (
+                  <button
+                    onClick={handleStartTrip}
+                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#ea580c] to-[#f97316] hover:from-[#c2410c] hover:to-[#ea580c] text-white font-heading font-bold text-xs uppercase tracking-wider shadow-md shadow-orange-500/20 transition flex items-center gap-2"
+                  >
+                    <span>Engage Live Trip Telemetry</span>
+                    <ArrowRight className="w-4 h-4 text-white" />
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {routes.map(r => {
+                  const isSelected = r.id === selectedRouteId;
+                  const isCompatible = r.is_compatible !== false;
+
+                  return (
+                    <div
+                      key={r.id}
+                      onClick={() => setSelectedRouteId(r.id)}
+                      className={`p-5 rounded-3xl border transition cursor-pointer relative flex flex-col justify-between bg-white ${
+                        isSelected
+                          ? 'border-[#ea580c] ring-2 ring-orange-500/20 shadow-md'
+                          : 'border-slate-200 hover:border-orange-300 shadow-xs'
+                      }`}
+                    >
+                      {/* Top Badges */}
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <span className={`px-2 py-0.5 rounded-lg text-xs font-black ${
+                            r.route_code === 'Route A' ? 'bg-[#ea580c] text-white' :
+                            r.route_code === 'Route B' ? 'bg-amber-500 text-white' : 'bg-slate-700 text-white'
+                          }`}>
+                            {r.route_code}
+                          </span>
+                          {r.is_recommended && (
+                            <span className="text-[10px] font-black tracking-wider uppercase px-2 py-0.5 rounded bg-orange-100 text-[#ea580c] border border-orange-200">
+                              AI TOP PICK
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="text-right">
+                          <div className="text-xs font-black text-[#ea580c]">{r.route_score}/100</div>
+                          <div className="text-[9px] text-slate-400 uppercase">Score</div>
+                        </div>
+                      </div>
+
+                      {/* Route Title & Summary */}
+                      <div>
+                        <h3 className="font-bold text-sm text-slate-900 line-clamp-1">{r.route_name}</h3>
+                        <p className="text-[11px] text-slate-500 mt-1 line-clamp-2">{r.summary}</p>
+                      </div>
+
+                      {/* Physical Clearance Status */}
+                      <div className="my-3">
+                        {isCompatible ? (
+                          <div className="p-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] flex items-center gap-1.5 font-semibold">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>100% Road Clearance Compliant</span>
+                          </div>
+                        ) : (
+                          <div className="p-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-[11px] flex items-start gap-1.5 font-medium leading-tight">
+                            <AlertTriangle className="w-3.5 h-3.5 text-rose-600 flex-shrink-0 mt-0.5" />
+                            <span>{r.incompatibility_reason}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Core Metrics Matrix */}
+                      <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-100">
+                        <div className="p-2 rounded-xl bg-slate-50">
+                          <div className="text-[10px] text-slate-400">Duration &amp; ETA</div>
+                          <div className="font-bold text-slate-800 mt-0.5">{r.duration_minutes} min ({r.current_eta})</div>
+                        </div>
+
+                        <div className="p-2 rounded-xl bg-slate-50">
+                          <div className="text-[10px] text-slate-400">Total Transit Cost</div>
+                          <div className="font-bold text-[#ea580c] mt-0.5">₹{r.total_cost}</div>
+                        </div>
+
+                        <div className="p-2 rounded-xl bg-slate-50">
+                          <div className="text-[10px] text-slate-400">Fuel Required</div>
+                          <div className="font-bold text-slate-800 mt-0.5">{r.fuel_liters} L (₹{r.fuel_cost})</div>
+                        </div>
+
+                        <div className="p-2 rounded-xl bg-slate-50">
+                          <div className="text-[10px] text-slate-400">Traffic / Delay Risk</div>
+                          <div className={`font-bold mt-0.5 ${
+                            r.traffic_level === 'LOW' ? 'text-emerald-600' :
+                            r.traffic_level === 'HEAVY' ? 'text-amber-600' : 'text-slate-800'
+                          }`}>
+                            {r.traffic_level} ({r.delay_risk_percent}%)
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
+          )}
 
-            {generatedTrip && (
-              <button
-                onClick={handleStartTrip}
-                className="px-6 py-2.5 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 hover:from-emerald-400 hover:to-emerald-300 text-slate-950 font-heading font-extrabold text-xs uppercase tracking-wider shadow-emerald-glow hover:shadow-emerald-glow-hover transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-2"
-              >
-                <span>Engage Live Trip Telemetry</span>
-                <ArrowRight className="w-4 h-4 text-slate-950" />
-              </button>
-            )}
-          </div>
+          {/* AI-Assisted Departure Time Prediction */}
+          {departurePrediction && (
+            <div className="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-100">
+                <div>
+                  <h2 className="text-base font-heading font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-[#ea580c]" />
+                    AI-Assisted Departure Timing Prediction
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    Probabilistic traffic bottleneck avoidance modeling.
+                  </p>
+                </div>
 
-          {/* Budget Constraint Exceeded Alert (Requirement 10) */}
-          {(() => {
-            const parsedBudget = parseFloat(budget) || 0;
-            const minCost = routes.length > 0 ? Math.min(...routes.map(r => r.total_cost || Infinity)) : 0;
-            const closest = routes.find(r => r.total_cost === minCost);
-            if (parsedBudget > 0 && minCost > parsedBudget) {
-              return (
-                <div className="p-4 rounded-2xl bg-amber-950/70 border border-amber-500/70 text-amber-200 text-xs sm:text-sm flex items-start gap-3 shadow-lg animate-in fade-in">
-                  <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <div className="font-heading font-extrabold uppercase tracking-wider text-amber-300">
-                      Budget Constraint Advisory
-                    </div>
-                    <div className="mt-0.5 leading-relaxed">
-                      No candidate route currently satisfies your budget ceiling of <strong>₹{parsedBudget.toLocaleString()}</strong>. 
-                      The closest feasible logistics option is <strong className="text-white">₹{minCost.toLocaleString()}</strong> ({closest?.route_name || 'Shortest Feasible Corridor'}).
-                    </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <div className="px-3 py-1 rounded-full bg-orange-50 border border-orange-200 text-[#ea580c] font-bold">
+                    Recommended: {departurePrediction.recommendedDeparture}
+                  </div>
+                  <div className="px-3 py-1 rounded-full bg-slate-100 text-slate-700 font-medium">
+                    Buffer: {departurePrediction.safetyBufferMinutes} mins
                   </div>
                 </div>
-              );
-            }
-            return null;
-          })()}
+              </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {routes.map(r => {
-              const isSelected = r.id === selectedRouteId;
-              const isCompatible = r.is_compatible !== false;
+              {/* 4 Departure Windows Scenarios */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
+                {departurePrediction.scenarios?.map(sc => (
+                  <div
+                    key={sc.id}
+                    className={`p-4 rounded-2xl border transition flex flex-col justify-between ${
+                      sc.isRecommended
+                        ? 'bg-orange-50/70 border-[#ea580c] text-slate-900 shadow-xs'
+                        : 'bg-white border-slate-200 text-slate-700'
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between text-xs mb-1">
+                        <span className="font-heading font-bold uppercase tracking-wider text-[10px] text-[#ea580c]">{sc.status}</span>
+                        <span className="text-[11px] font-mono font-bold text-slate-500">{sc.confidencePercent}% Conf</span>
+                      </div>
+                      <div className="text-xl font-heading font-black text-slate-900 mt-1">
+                        {sc.departureTime}
+                      </div>
+                      <div className="text-xs text-slate-500 mt-0.5">
+                        ETA: <span className="text-slate-800 font-semibold">{sc.expectedArrival}</span>
+                      </div>
+                    </div>
 
-              return (
-                <div
-                  key={r.id}
-                  onClick={() => setSelectedRouteId(r.id)}
-                  className={`p-5 rounded-3xl border transition cursor-pointer relative flex flex-col justify-between ${
-                    isSelected
-                      ? 'glass-panel border-emerald-500/80 glow-emerald bg-[#081810]/90 shadow-2xl'
-                      : 'glass-panel border-emerald-950/60 hover:border-emerald-500/40 bg-[#06100b]/70'
-                  }`}
-                >
-                  {/* Top Badges */}
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <span className={`px-2 py-0.5 rounded-lg text-xs font-black ${
-                        r.route_code === 'Route A' ? 'bg-indigo-500 text-white' :
-                        r.route_code === 'Route B' ? 'bg-amber-500 text-slate-950' : 'bg-cyan-500 text-slate-950'
-                      }`}>
-                        {r.route_code}
-                      </span>
-                      {r.is_recommended && (
-                        <span className="text-[10px] font-black tracking-wider uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                          AI TOP PICK
-                        </span>
+                    <div className="mt-3 text-[11px] text-slate-500 pt-2 border-t border-slate-100 flex items-center justify-between">
+                      <span>Buffer: {sc.bufferMinutes}m</span>
+                      {sc.isRecommended && (
+                        <span className="text-[#ea580c] font-bold uppercase text-[10px]">Recommended</span>
                       )}
                     </div>
-
-                    <div className="text-right">
-                      <div className="text-xs font-black text-indigo-300">{r.route_score}/100</div>
-                      <div className="text-[9px] text-slate-500 uppercase">Route Score</div>
-                    </div>
                   </div>
+                ))}
+              </div>
+            </div>
+          )}
 
-                  {/* Route Title & Summary */}
-                  <div>
-                    <h3 className="font-bold text-sm text-slate-100 line-clamp-1">{r.route_name}</h3>
-                    <p className="text-[11px] text-slate-400 mt-1 line-clamp-2">{r.summary}</p>
-                  </div>
-
-                  {/* Physical Restriction Status */}
-                  <div className="my-3">
-                    {isCompatible ? (
-                      <div className="p-2 rounded-xl bg-emerald-950/40 border border-emerald-800/60 text-emerald-300 text-[11px] flex items-center gap-1.5 font-semibold">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                        <span>100% Vehicle & Load Clearance Compliant</span>
-                      </div>
-                    ) : (
-                      <div className="p-2 rounded-xl bg-rose-950/60 border border-rose-800/80 text-rose-300 text-[11px] flex items-start gap-1.5 font-medium leading-tight">
-                        <AlertTriangle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
-                        <span>{r.incompatibility_reason}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Core Metrics Matrix */}
-                  <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-800/80">
-                    <div className="p-2 rounded-xl bg-slate-950/60">
-                      <div className="text-[10px] text-slate-500">Duration & ETA</div>
-                      <div className="font-bold text-slate-200 mt-0.5">{r.duration_minutes} min ({r.current_eta})</div>
-                    </div>
-
-                    <div className="p-2 rounded-xl bg-slate-950/60">
-                      <div className="text-[10px] text-slate-500">Total Transit Cost</div>
-                      <div className="font-bold text-emerald-400 mt-0.5">₹{r.total_cost}</div>
-                    </div>
-
-                    <div className="p-2 rounded-xl bg-slate-950/60">
-                      <div className="text-[10px] text-slate-500">Fuel Required</div>
-                      <div className="font-bold text-slate-200 mt-0.5">{r.fuel_liters} L (₹{r.fuel_cost})</div>
-                    </div>
-
-                    <div className="p-2 rounded-xl bg-slate-950/60">
-                      <div className="text-[10px] text-slate-500">Congestion / Delay Risk</div>
-                      <div className={`font-bold mt-0.5 ${
-                        r.traffic_level === 'LOW' ? 'text-emerald-400' :
-                        r.traffic_level === 'HEAVY' ? 'text-amber-400' : 'text-slate-200'
-                      }`}>
-                        {r.traffic_level} ({r.delay_risk_percent}% risk)
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          {/* Embedded Co-Loading Marketplace Network Feature (Same Page) */}
+          <CoLoadingFeatureSection
+            currentOrigin={originQuery}
+            currentDestination={destinationQuery}
+            currentWeight={cargoWeight}
+            onApplyLaneToPlanner={(lane) => {
+              handleApplyPreset({ origin: lane.origin, dest: lane.destination });
+            }}
+          />
         </div>
-      )}
 
-      {/* AI-Assisted Departure Time Prediction (Section 20) */}
-      {departurePrediction && (
-        <div className="glass-panel p-6 rounded-3xl border border-emerald-900/40 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div>
-              <h2 className="text-base font-heading font-extrabold text-white tracking-tight flex items-center gap-2 uppercase">
-                <Clock className="w-5 h-5 text-emerald-400" />
-                AI-Assisted Departure Timing Prediction
-              </h2>
-              <p className="text-xs text-slate-400">
-                Probabilistic modeling factoring historical bottleneck curves and safety arrival margins.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-3 text-xs">
-              <div className="px-3.5 py-1.5 rounded-full bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 font-heading">
-                Recommended Departure: <strong className="text-white ml-1">{departurePrediction.recommendedDeparture}</strong>
+        {/* Right Column: Predictive Insights & Corridor Intelligence (4 cols) */}
+        <div className="lg:col-span-4 space-y-6">
+          {/* Predictive Insights Card matching Screenshot */}
+          <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/90 shadow-xs space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-heading font-bold text-base text-slate-900">
+                  Predictive insights
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Prioritized by operational impact
+                </p>
               </div>
-              <div className="px-3.5 py-1.5 rounded-full bg-[#08140f] border border-emerald-900/60 text-slate-300 font-heading">
-                Safety Buffer: <strong className="text-amber-400 ml-1">{departurePrediction.safetyBufferMinutes} mins</strong>
-              </div>
-            </div>
-          </div>
 
-          {/* 4 Departure Windows Scenarios */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
-            {departurePrediction.scenarios?.map(sc => (
-              <div
-                key={sc.id}
-                className={`p-4 rounded-2xl border transition flex flex-col justify-between ${
-                  sc.isRecommended
-                    ? 'bg-emerald-950/40 border-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                    : 'bg-[#08140f]/80 border-emerald-950/60 text-slate-300'
-                }`}
+              <button
+                type="button"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition"
               >
-                <div>
-                  <div className="flex items-center justify-between text-xs mb-1">
-                    <span className="font-heading font-bold uppercase tracking-wider text-[10px] text-emerald-400">{sc.status}</span>
-                    <span className="text-[11px] font-mono font-bold text-amber-300">{sc.confidencePercent}% Conf</span>
-                  </div>
-                  <div className="text-xl font-heading font-black text-white mt-1">
-                    {sc.departureTime}
-                  </div>
-                  <div className="text-xs text-slate-400 mt-0.5">
-                    Expected Arrival: <span className="text-slate-200 font-semibold">{sc.expectedArrival}</span>
-                  </div>
-                </div>
+                <MoreHorizontal className="w-4 h-4" />
+              </button>
+            </div>
 
-                <div className="mt-3 text-[11px] text-slate-400 pt-2 border-t border-emerald-900/40 flex items-center justify-between font-heading">
-                  <span>Buffer: {sc.bufferMinutes} mins</span>
-                  {sc.isRecommended && (
-                    <span className="text-emerald-400 font-bold uppercase tracking-wider text-[10px]">Recommended</span>
-                  )}
+            {/* Insight 1: HIGH IMPACT (Congestion) matching screenshot */}
+            <div className="p-4 rounded-2xl bg-amber-50/50 border border-amber-200/60 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center">
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-amber-800 bg-amber-100/70 px-2 py-0.5 rounded-md">
+                    HIGH IMPACT
+                  </span>
+                </div>
+                <span className="text-[10px] text-slate-400 font-mono">8 min ago</span>
+              </div>
+
+              <div>
+                <h4 className="font-heading font-bold text-xs text-slate-900">
+                  Congestion building on A12
+                </h4>
+                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                  3 routes will be delayed by 18–24 min if no action is taken.
+                </p>
+                <div className="mt-2 text-xs font-semibold text-emerald-700 flex items-center gap-1">
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Rerouting can save 51 minutes</span>
                 </div>
               </div>
-            ))}
+
+              <div className="flex items-center gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => navigate('/monitor')}
+                  className="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-heading font-bold text-[11px] shadow-xs transition"
+                >
+                  Review routes
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleApplyPreset(PRESET_CORRIDORS[0]);
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-orange-100/70 hover:bg-orange-100 text-[#ea580c] font-heading font-bold text-[11px] transition"
+                >
+                  Apply recommendation
+                </button>
+              </div>
+            </div>
+
+            {/* Insight 2: DEPARTURE WINDOW matching screenshot */}
+            <div className="p-4 rounded-2xl bg-orange-50/40 border border-orange-200/60 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-lg bg-orange-100 text-[#ea580c] flex items-center justify-center">
+                    <Clock className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-[#ea580c] bg-orange-100/70 px-2 py-0.5 rounded-md">
+                    DEPARTURE WINDOW
+                  </span>
+                </div>
+                <span className="text-[10px] text-slate-400 font-mono">21 min ago</span>
+              </div>
+
+              <div>
+                <h4 className="font-heading font-bold text-xs text-slate-900">
+                  Delay Rotterdam departure
+                </h4>
+                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                  Leaving 20 minutes later avoids peak port traffic for route RM-2853.
+                </p>
+              </div>
+
+              <div className="pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDesiredDeadline('18:45');
+                    handleGenerateRoutes();
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-heading font-bold text-[11px] shadow-xs transition"
+                >
+                  Adjust schedule
+                </button>
+              </div>
+            </div>
+
+            {/* Insight 3: Co-Loading Match Opportunity */}
+            <div className="p-4 rounded-2xl bg-emerald-50/40 border border-emerald-200/60 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                    <Share2 className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-emerald-800 bg-emerald-100/70 px-2 py-0.5 rounded-md">
+                    CO-LOADING MATCH
+                  </span>
+                </div>
+                <span className="text-[10px] text-slate-400 font-mono">Just now</span>
+              </div>
+
+              <div>
+                <h4 className="font-heading font-bold text-xs text-slate-900">
+                  Capacity match found on return leg
+                </h4>
+                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                  Matching 2,400 kg shipment on return corridor saves ₹3,200 in deadhead costs.
+                </p>
+              </div>
+
+              <div className="pt-1">
+                <button
+                  type="button"
+                  onClick={() => document.getElementById('coloading-feature')?.scrollIntoView({ behavior: 'smooth' })}
+                  className="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-heading font-bold text-[11px] shadow-xs transition flex items-center gap-1.5"
+                >
+                  <span>Explore Marketplace</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
           </div>
 
-          <div className="text-[11px] text-slate-500 italic">
-            * {departurePrediction.disclaimer}
+          {/* Quick Corridors Preset Pill List */}
+          <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/90 shadow-xs space-y-3">
+            <h4 className="font-heading font-bold text-xs text-slate-500 uppercase tracking-wider">
+              Quick Freight Corridors
+            </h4>
+            <div className="space-y-2">
+              {PRESET_CORRIDORS.map((preset, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => handleApplyPreset(preset)}
+                  className="w-full p-2.5 rounded-xl border border-slate-200 hover:border-orange-300 hover:bg-orange-50/40 text-left transition flex items-center justify-between group"
+                >
+                  <div>
+                    <div className="text-xs font-heading font-bold text-slate-800 group-hover:text-[#ea580c] transition-colors">
+                      {preset.name}
+                    </div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">
+                      {preset.origin} → {preset.dest}
+                    </div>
+                  </div>
+                  <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#ea580c] transition" />
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-      )}
-
-      {/* Embedded Co-Loading Marketplace Network Feature (Same Page) */}
-      <CoLoadingFeatureSection
-        currentOrigin={originQuery}
-        currentDestination={destinationQuery}
-        currentWeight={cargoWeight}
-        onApplyLaneToPlanner={(lane) => {
-          handleApplyPreset({ origin: lane.origin, dest: lane.destination });
-        }}
-      />
+      </div>
     </div>
   );
 }

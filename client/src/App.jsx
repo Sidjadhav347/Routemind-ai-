@@ -14,6 +14,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import AIAssistantDrawer from './components/ai-assistant/AIAssistantDrawer';
 import FloatingActionMenu from './components/common/FloatingActionMenu';
+import Sidebar from './components/common/Sidebar';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -30,7 +31,10 @@ function ProtectedRoute({ children }) {
 function MainAppContent() {
   const [isAIOpen, setIsAIOpen] = useState(false);
   const [activeScenarioBanner, setActiveScenarioBanner] = useState(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const navigate = useNavigate();
+  const location = window.location;
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
 
   const handleTriggerScenario = (scenario) => {
     setActiveScenarioBanner(scenario);
@@ -43,17 +47,18 @@ function MainAppContent() {
   };
 
   return (
-    <div className="min-h-screen bg-transparent text-slate-100 flex flex-col font-sans selection:bg-emerald-500 selection:text-slate-950">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-800 flex flex-col font-sans selection:bg-[#ea580c] selection:text-white">
       <Navbar
         onOpenAI={() => setIsAIOpen(true)}
         onTriggerScenario={handleTriggerScenario}
+        onToggleSidebar={() => setIsSidebarOpen(prev => !prev)}
       />
 
       {/* Live Demo Scenario Alert Banner */}
       {activeScenarioBanner && (
-        <div className="bg-gradient-to-r from-amber-600/30 via-indigo-600/30 to-rose-600/30 border-b border-amber-500/40 px-4 py-2 text-xs flex items-center justify-between text-amber-200">
+        <div className="bg-gradient-to-r from-orange-500/10 via-amber-500/10 to-orange-500/15 border-b border-orange-300 px-4 py-2.5 text-xs flex items-center justify-between text-orange-950 shadow-xs">
           <div className="flex items-center gap-2">
-            <span className="font-extrabold uppercase px-1.5 py-0.5 rounded bg-amber-500 text-slate-950 text-[10px]">
+            <span className="font-extrabold uppercase px-2 py-0.5 rounded-full bg-[#ea580c] text-white text-[10px] tracking-wider shadow-xs">
               DEMO SCENARIO ENGAGED
             </span>
             <strong>{activeScenarioBanner.title}:</strong>
@@ -61,28 +66,35 @@ function MainAppContent() {
           </div>
           <button
             onClick={() => setActiveScenarioBanner(null)}
-            className="text-amber-400 hover:text-white font-bold ml-4"
+            className="text-[#ea580c] hover:text-[#9a3412] font-bold ml-4 underline text-xs"
           >
             Dismiss
           </button>
         </div>
       )}
 
-      {/* Main Routed Page Content */}
-      <main className="flex-1 pb-12">
-        <Routes>
-          <Route path="/" element={<ProtectedRoute><TripPlannerPage /></ProtectedRoute>} />
-          <Route path="/monitor" element={<ProtectedRoute><ActiveMonitorPage /></ProtectedRoute>} />
-          <Route path="/simulator" element={<ProtectedRoute><WhatIfSimulatorPage /></ProtectedRoute>} />
-          <Route path="/coloading" element={<Navigate to="/#coloading-feature" replace />} />
-          <Route path="/vehicles" element={<ProtectedRoute><VehiclesPage /></ProtectedRoute>} />
-          <Route path="/cargo" element={<ProtectedRoute><CargoPage /></ProtectedRoute>} />
-          <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </main>
+      {/* Main Flex Layout with Left Sidebar */}
+      <div className="flex-1 flex min-w-0">
+        {!isAuthPage && (
+          <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+        )}
+
+        {/* Main Routed Page Content */}
+        <main className="flex-1 min-w-0 pb-16 overflow-y-auto">
+          <Routes>
+            <Route path="/" element={<ProtectedRoute><TripPlannerPage /></ProtectedRoute>} />
+            <Route path="/monitor" element={<ProtectedRoute><ActiveMonitorPage /></ProtectedRoute>} />
+            <Route path="/simulator" element={<ProtectedRoute><WhatIfSimulatorPage /></ProtectedRoute>} />
+            <Route path="/coloading" element={<Navigate to="/#coloading-feature" replace />} />
+            <Route path="/vehicles" element={<ProtectedRoute><VehiclesPage /></ProtectedRoute>} />
+            <Route path="/cargo" element={<ProtectedRoute><CargoPage /></ProtectedRoute>} />
+            <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </main>
+      </div>
 
       {/* Floating Action Menu (Jitter-style Spring Speed Dial) */}
       <FloatingActionMenu onOpenAI={() => setIsAIOpen(true)} />
