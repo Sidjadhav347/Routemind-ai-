@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
   Navigation,
@@ -7,7 +7,11 @@ import {
   Sliders,
   Bot,
   X,
-  Sparkles
+  Sparkles,
+  Truck,
+  Package,
+  BarChart3,
+  Share2
 } from 'lucide-react';
 
 export default function FloatingActionMenu({ onOpenAI = () => {} }) {
@@ -36,39 +40,60 @@ export default function FloatingActionMenu({ onOpenAI = () => {} }) {
       }
     };
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('click', handleClickOutside);
     }
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
   }, [isOpen]);
 
-  // Safe navigation handler that ensures access without breaking flow
-  const handleActionClick = (action) => {
+  // Reliable navigation handler
+  const handleActionClick = (action, e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setIsOpen(false);
+
     if (!isAuthenticated) {
       loginDemoOffline();
     }
 
     if (action.type === 'ai') {
       onOpenAI();
-    } else if (action.path) {
+      return;
+    }
+
+    if (action.path) {
       if (action.path === '/#coloading-feature') {
         if (location.pathname === '/') {
-          document.getElementById('coloading-feature')?.scrollIntoView({ behavior: 'smooth' });
+          const el = document.getElementById('coloading-feature');
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
         } else {
-          navigate('/#coloading-feature');
+          navigate('/');
+          setTimeout(() => {
+            const el = document.getElementById('coloading-feature');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          }, 250);
+        }
+      } else if (action.path === '/' && location.pathname === '/') {
+        const el = document.getElementById('route-planner-section');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+        } else {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         }
       } else {
         navigate(action.path);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     }
   };
 
-  // Actions stacked from bottom (nearest trigger) to top with White & Orange theme
+  // Actions representing all capabilities with White & Orange theme
   const actions = [
     {
       id: 'planner',
       label: 'Route Planner',
-      sublabel: 'Multi-Corridor AI Optimization',
+      sublabel: 'Multi-Corridor AI Engine',
       path: '/',
       icon: Navigation,
       bg: 'bg-white',
@@ -79,7 +104,7 @@ export default function FloatingActionMenu({ onOpenAI = () => {} }) {
     },
     {
       id: 'monitor',
-      label: 'Live Monitor',
+      label: 'Live Operations',
       sublabel: 'Real-time Telemetry & Clearance',
       path: '/monitor',
       icon: Activity,
@@ -92,7 +117,7 @@ export default function FloatingActionMenu({ onOpenAI = () => {} }) {
     {
       id: 'simulator',
       label: 'What-If Simulator',
-      sublabel: 'Traffic, Road & Weight Stress Tests',
+      sublabel: 'Traffic & Weight Stress Tests',
       path: '/simulator',
       icon: Sliders,
       bg: 'bg-white',
@@ -100,6 +125,54 @@ export default function FloatingActionMenu({ onOpenAI = () => {} }) {
       iconColor: 'text-[#ea580c]',
       shadow: 'shadow-md shadow-orange-500/10',
       active: location.pathname === '/simulator'
+    },
+    {
+      id: 'coloading',
+      label: 'Co-Loading Market',
+      sublabel: 'Shared Container Space & AI Match',
+      path: '/#coloading-feature',
+      icon: Share2,
+      bg: 'bg-white',
+      border: 'border-orange-200',
+      iconColor: 'text-[#ea580c]',
+      shadow: 'shadow-md shadow-orange-500/10',
+      active: false
+    },
+    {
+      id: 'fleet',
+      label: 'Fleet Management',
+      sublabel: 'Clearances & Tare Weights',
+      path: '/vehicles',
+      icon: Truck,
+      bg: 'bg-white',
+      border: 'border-orange-200',
+      iconColor: 'text-[#ea580c]',
+      shadow: 'shadow-md shadow-orange-500/10',
+      active: location.pathname === '/vehicles'
+    },
+    {
+      id: 'cargo',
+      label: 'Cargo Manifests',
+      sublabel: 'Consignments & SLA Priorities',
+      path: '/cargo',
+      icon: Package,
+      bg: 'bg-white',
+      border: 'border-orange-200',
+      iconColor: 'text-[#ea580c]',
+      shadow: 'shadow-md shadow-orange-500/10',
+      active: location.pathname === '/cargo'
+    },
+    {
+      id: 'analytics',
+      label: 'Analytics & Audit',
+      sublabel: 'Cost Ledger & Fuel Diagnostics',
+      path: '/analytics',
+      icon: BarChart3,
+      bg: 'bg-white',
+      border: 'border-orange-200',
+      iconColor: 'text-[#ea580c]',
+      shadow: 'shadow-md shadow-orange-500/10',
+      active: location.pathname === '/analytics'
     },
     {
       id: 'ai-copilot',
@@ -119,37 +192,45 @@ export default function FloatingActionMenu({ onOpenAI = () => {} }) {
   return (
     <div
       ref={menuRef}
-      className="fixed bottom-6 right-6 z-40 flex flex-col items-end select-none pointer-events-auto"
+      className="fixed bottom-6 right-6 z-50 flex flex-col items-end select-none pointer-events-auto"
       aria-label="Quick Mobility Floating Action Menu"
     >
       {/* Backdrop overlay when open to emphasize floating hierarchy */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-slate-900/20 backdrop-blur-[2px] z-30 transition-opacity animate-in fade-in duration-200"
+          className="fixed inset-0 bg-slate-900/25 backdrop-blur-[2px] z-40 transition-opacity animate-in fade-in duration-200"
           onClick={() => setIsOpen(false)}
           aria-hidden="true"
         />
       )}
 
       {/* Speed-Dial Action Items (Stacked Vertically Upward with Spring Animation) */}
-      <div className={`relative z-40 flex flex-col items-end gap-3 mb-3 ${isOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}>
+      <div
+        onMouseDown={(e) => e.stopPropagation()}
+        className={`relative z-50 flex flex-col items-end gap-2.5 mb-3 max-h-[75vh] overflow-y-auto pr-1 pb-1 scrollbar-none ${
+          isOpen ? 'pointer-events-auto' : 'pointer-events-none'
+        }`}
+      >
         {isOpen &&
           actions.map((act, index) => {
             const IconComponent = act.icon;
             // Delay staggered from bottom to top
-            const delayMs = index * 55;
+            const delayMs = index * 35;
 
             return (
-              <div
+              <button
+                type="button"
                 key={act.id}
                 style={{ animationDelay: `${delayMs}ms` }}
-                className="jitter-spring-in flex items-center gap-3 group cursor-pointer"
-                onClick={() => handleActionClick(act)}
+                className="jitter-spring-in flex items-center gap-3 group cursor-pointer text-left focus:outline-none"
+                onClick={(e) => handleActionClick(act, e)}
+                onMouseDown={(e) => e.stopPropagation()}
+                title={act.label}
               >
                 {/* Action Pill Badge (Slides in from right) */}
                 <div
-                  style={{ animationDelay: `${delayMs + 25}ms` }}
-                  className="jitter-pill-in hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-white/95 border border-slate-200 text-slate-800 shadow-lg shadow-slate-900/5 group-hover:border-orange-300 group-hover:bg-[#fff7ed] transition-all duration-200 transform group-hover:-translate-x-1"
+                  style={{ animationDelay: `${delayMs + 20}ms` }}
+                  className="jitter-pill-in hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-white/95 border border-slate-200 text-slate-800 shadow-md group-hover:border-orange-300 group-hover:bg-[#fff7ed] transition-all duration-200 transform group-hover:-translate-x-1"
                 >
                   <div className="flex flex-col text-right">
                     <span className="text-xs font-heading font-bold text-slate-900 group-hover:text-[#ea580c] transition-colors flex items-center justify-end gap-1.5">
@@ -167,16 +248,14 @@ export default function FloatingActionMenu({ onOpenAI = () => {} }) {
                 </div>
 
                 {/* Circular Action Button */}
-                <button
-                  type="button"
-                  aria-label={act.label}
-                  className={`w-12 h-12 rounded-full ${act.bg} ${act.shadow} border ${act.border} flex items-center justify-center transition-all duration-200 transform group-hover:scale-110 group-hover:shadow-orange-500/30 group-active:scale-95 ${
+                <div
+                  className={`w-11 h-11 rounded-full ${act.bg} ${act.shadow} border ${act.border} flex items-center justify-center transition-all duration-200 transform group-hover:scale-110 group-hover:shadow-orange-500/30 group-active:scale-95 ${
                     act.active ? 'ring-2 ring-[#ea580c] ring-offset-2 ring-offset-white' : ''
                   }`}
                 >
-                  <IconComponent className={`w-5 h-5 ${act.iconColor} stroke-[2.2]`} />
-                </button>
-              </div>
+                  <IconComponent className={`w-4.5 h-4.5 ${act.iconColor} stroke-[2.2]`} />
+                </div>
+              </button>
             );
           })}
       </div>
@@ -184,10 +263,14 @@ export default function FloatingActionMenu({ onOpenAI = () => {} }) {
       {/* Main Trigger Floating Action Button in White & Orange theme */}
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsOpen(!isOpen);
+        }}
+        onMouseDown={(e) => e.stopPropagation()}
         aria-expanded={isOpen}
         aria-label="Toggle Quick Mobility Menu"
-        className={`relative z-40 w-14 h-14 rounded-full bg-gradient-to-tr from-[#ea580c] via-[#f97316] to-[#fb923c] border-2 border-white/60 text-white shadow-xl shadow-orange-500/40 flex items-center justify-center transition-all duration-300 transform hover:scale-105 active:scale-95 ${
+        className={`relative z-50 w-14 h-14 rounded-full bg-gradient-to-tr from-[#ea580c] via-[#f97316] to-[#fb923c] border-2 border-white/80 text-white shadow-xl shadow-orange-500/40 flex items-center justify-center transition-all duration-300 transform hover:scale-105 active:scale-95 ${
           !isOpen ? 'ring-4 ring-orange-200/70' : 'ring-4 ring-orange-400/50'
         }`}
         title={isOpen ? 'Close Quick Menu (Esc)' : 'Quick Mobility Actions'}

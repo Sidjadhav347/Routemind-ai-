@@ -272,7 +272,8 @@ export default function RouteMap({
   onWaypointsChange,
   allowPinning = true,
   externalPinMode = null,
-  onPinModeChange = () => {}
+  onPinModeChange = () => {},
+  cleanView = false
 }) {
   const [internalPinMode, setInternalPinMode] = useState(null); // 'origin' | 'destination' | 'waypoint' | null
   const pinMode = externalPinMode !== null ? externalPinMode : internalPinMode;
@@ -576,156 +577,213 @@ export default function RouteMap({
   return (
     <div className="relative w-full h-full min-h-[460px] rounded-3xl overflow-hidden border border-slate-200/90 shadow-sm bg-white flex flex-col">
       {/* TOP MAP ACTION TOOLBAR */}
-      <div className="absolute top-3 left-3 right-3 z-[1000] flex items-center justify-between pointer-events-none gap-2 flex-wrap">
-        {/* Left Side: Pin Mode Buttons & Live GPS Locate Button */}
-        <div className="flex items-center gap-1.5 p-1.5 rounded-2xl glass-panel bg-white/95 border border-slate-200/90 shadow-md backdrop-blur-md pointer-events-auto flex-wrap">
-          {/* REAL-TIME GPS CURRENT LOCATION BUTTON */}
-          <button
-            onClick={handleLocateMe}
-            disabled={isLocating}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition shadow-xs ${
-              locateSuccess
-                ? 'bg-[#ea580c] text-white font-black shadow-orange-500/30 animate-pulse'
-                : 'bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100'
-            }`}
-            title="Locate me using device GPS and set as departure origin"
-          >
-            <Radio className={`w-3.5 h-3.5 ${isLocating ? 'animate-spin text-[#ea580c]' : 'text-[#ea580c]'}`} />
-            <span>{isLocating ? 'Acquiring GPS...' : locateSuccess ? '📍 GPS Locked!' : '🎯 Locate Me'}</span>
-          </button>
+      {!cleanView ? (
+        <div className="absolute top-3 left-3 right-3 z-[1000] flex items-center justify-between pointer-events-none gap-2 flex-wrap">
+          {/* Left Side: Pin Mode Buttons & Live GPS Locate Button */}
+          <div className="flex items-center gap-1.5 p-1.5 rounded-2xl glass-panel bg-white/95 border border-slate-200/90 shadow-md backdrop-blur-md pointer-events-auto flex-wrap">
+            {/* REAL-TIME GPS CURRENT LOCATION BUTTON */}
+            <button
+              onClick={handleLocateMe}
+              disabled={isLocating}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition shadow-xs ${
+                locateSuccess
+                  ? 'bg-[#ea580c] text-white font-black shadow-orange-500/30 animate-pulse'
+                  : 'bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100'
+              }`}
+              title="Locate me using device GPS and set as departure origin"
+            >
+              <Radio className={`w-3.5 h-3.5 ${isLocating ? 'animate-spin text-[#ea580c]' : 'text-[#ea580c]'}`} />
+              <span>{isLocating ? 'Acquiring GPS...' : locateSuccess ? '📍 GPS Locked!' : '🎯 Locate Me'}</span>
+            </button>
 
-          {/* Continuous Tracking Toggle */}
-          <button
-            onClick={toggleGpsTracking}
-            className={`px-2 py-1.5 rounded-xl text-[11px] font-mono font-bold transition ${
-              isTrackingGps
-                ? 'bg-orange-50 text-[#ea580c] border border-orange-200'
-                : 'text-slate-400 hover:text-slate-700'
-            }`}
-            title="Toggle live continuous GPS tracking watch"
-          >
-            {isTrackingGps ? '🛰️ Live Track' : 'Track'}
-          </button>
+            {/* Continuous Tracking Toggle */}
+            <button
+              onClick={toggleGpsTracking}
+              className={`px-2 py-1.5 rounded-xl text-[11px] font-mono font-bold transition ${
+                isTrackingGps
+                  ? 'bg-orange-50 text-[#ea580c] border border-orange-200'
+                  : 'text-slate-400 hover:text-slate-700'
+              }`}
+              title="Toggle live continuous GPS tracking watch"
+            >
+              {isTrackingGps ? '🛰️ Live Track' : 'Track'}
+            </button>
 
-          <div className="w-[1px] h-4 bg-slate-200 mx-1" />
+            <div className="w-[1px] h-4 bg-slate-200 mx-1" />
 
-          {/* Pinning Controls */}
-          {allowPinning && (
-            <>
+            {/* Pinning Controls */}
+            {allowPinning && (
+              <>
+                <button
+                  onClick={() => setPinMode(pinMode === 'origin' ? null : 'origin')}
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition ${
+                    pinMode === 'origin'
+                      ? 'bg-[#ea580c] text-white font-bold shadow-md shadow-orange-500/30'
+                      : 'text-slate-600 hover:text-[#ea580c] hover:bg-orange-50'
+                  }`}
+                  title="Click map to place Origin Pin A"
+                >
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#ea580c]" />
+                  <span>Pin A</span>
+                </button>
+
+                <button
+                  onClick={() => setPinMode(pinMode === 'destination' ? null : 'destination')}
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition ${
+                    pinMode === 'destination'
+                      ? 'bg-rose-500 text-white font-bold shadow-md shadow-rose-500/30'
+                      : 'text-slate-600 hover:text-rose-600 hover:bg-rose-50'
+                  }`}
+                  title="Click map to place Destination Pin B"
+                >
+                  <div className="w-2.5 h-2.5 rounded-full bg-rose-500" />
+                  <span>Pin B</span>
+                </button>
+
+                <button
+                  onClick={() => setPinMode(pinMode === 'waypoint' ? null : 'waypoint')}
+                  className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition ${
+                    pinMode === 'waypoint'
+                      ? 'bg-amber-600 text-white font-bold shadow-md'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  }`}
+                  title="Click map to add a Waypoint Stop"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Waypoint</span>
+                </button>
+              </>
+            )}
+          </div>
+
+          {/* Right Side: Map Controls & Layer Switcher */}
+          <div className="flex items-center gap-1.5 pointer-events-auto">
+            {/* Traffic Flow Overlay Toggle */}
+            <button
+              onClick={() => setShowTrafficLayer(!showTrafficLayer)}
+              className={`px-2.5 py-1.5 rounded-xl text-xs font-bold border transition flex items-center gap-1.5 backdrop-blur-md shadow-xs ${
+                showTrafficLayer
+                  ? 'bg-orange-50 text-[#ea580c] border-orange-200'
+                  : 'bg-white/95 text-slate-500 border-slate-200 hover:text-slate-800'
+              }`}
+              title="Toggle Live Real-Time Highway Traffic Heatmap"
+            >
+              <span className="w-2 h-2 rounded-full bg-[#ea580c] animate-pulse" />
+              <span className="text-[11px] font-mono">TRAFFIC {showTrafficLayer ? 'ON' : 'OFF'}</span>
+            </button>
+
+            {/* Clearance Hazards Toggle */}
+            <button
+              onClick={() => setShowClearanceHazards(!showClearanceHazards)}
+              className={`px-2.5 py-1.5 rounded-xl text-xs font-bold border transition flex items-center gap-1.5 backdrop-blur-md shadow-xs ${
+                showClearanceHazards
+                  ? 'bg-amber-50 text-amber-700 border-amber-300'
+                  : 'bg-white/95 text-slate-500 border-slate-200 hover:text-slate-800'
+              }`}
+              title="Toggle Physical Road Clearances & Bridge Restriction Markers"
+            >
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+              <span className="text-[11px] font-mono">CLEARANCES</span>
+            </button>
+
+            {/* Map Layer Switcher */}
+            <div className="relative">
               <button
-                onClick={() => setPinMode(pinMode === 'origin' ? null : 'origin')}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition ${
-                  pinMode === 'origin'
-                    ? 'bg-[#ea580c] text-white font-bold shadow-md shadow-orange-500/30'
-                    : 'text-slate-600 hover:text-[#ea580c] hover:bg-orange-50'
-                }`}
-                title="Click map to place Origin Pin A"
+                onClick={() => setShowLayerMenu(!showLayerMenu)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/95 hover:bg-slate-50 text-slate-700 text-xs font-semibold border border-slate-200 shadow-xs backdrop-blur-md transition"
+                title="Switch Map Tiles (Light / Transit / Sat)"
               >
-                <div className="w-2.5 h-2.5 rounded-full bg-[#ea580c]" />
-                <span>Pin A</span>
+                <Layers className="w-3.5 h-3.5 text-[#ea580c]" />
+                <span className="hidden sm:inline">{currentTile.name}</span>
               </button>
 
-              <button
-                onClick={() => setPinMode(pinMode === 'destination' ? null : 'destination')}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition ${
-                  pinMode === 'destination'
-                    ? 'bg-rose-500 text-white font-bold shadow-md shadow-rose-500/30'
-                    : 'text-slate-600 hover:text-rose-600 hover:bg-rose-50'
-                }`}
-                title="Click map to place Destination Pin B"
-              >
-                <div className="w-2.5 h-2.5 rounded-full bg-rose-500" />
-                <span>Pin B</span>
-              </button>
-
-              <button
-                onClick={() => setPinMode(pinMode === 'waypoint' ? null : 'waypoint')}
-                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition ${
-                  pinMode === 'waypoint'
-                    ? 'bg-amber-600 text-white font-bold shadow-md'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                }`}
-                title="Click map to add a Waypoint Stop"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Waypoint</span>
-              </button>
-            </>
-          )}
+              {showLayerMenu && (
+                <div className="absolute right-0 mt-1.5 p-1.5 rounded-xl bg-white border border-slate-200 shadow-xl backdrop-blur-md flex flex-col gap-1 w-48 animate-in fade-in z-[2000]">
+                  {Object.entries(tileLayers).map(([key, item]) => (
+                    <button
+                      key={key}
+                      onClick={() => {
+                        setMapLayer(key);
+                        setShowLayerMenu(false);
+                      }}
+                      className={`px-2.5 py-1.5 rounded-lg text-left text-xs font-medium transition flex items-center justify-between ${
+                        mapLayer === key
+                          ? 'bg-orange-50 text-[#ea580c] font-bold'
+                          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                      }`}
+                    >
+                      <span>{item.name}</span>
+                      {key.startsWith('google') && (
+                        <span className="text-[9px] px-1 py-0.2 rounded bg-amber-100 text-amber-700 border border-amber-200">G</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-
-        {/* Right Side: Map Controls & Layer Switcher */}
-        <div className="flex items-center gap-1.5 pointer-events-auto">
-          {/* Traffic Flow Overlay Toggle */}
-          <button
-            onClick={() => setShowTrafficLayer(!showTrafficLayer)}
-            className={`px-2.5 py-1.5 rounded-xl text-xs font-bold border transition flex items-center gap-1.5 backdrop-blur-md shadow-xs ${
-              showTrafficLayer
-                ? 'bg-orange-50 text-[#ea580c] border-orange-200'
-                : 'bg-white/95 text-slate-500 border-slate-200 hover:text-slate-800'
-            }`}
-            title="Toggle Live Real-Time Highway Traffic Heatmap"
-          >
-            <span className="w-2 h-2 rounded-full bg-[#ea580c] animate-pulse" />
-            <span className="text-[11px] font-mono">TRAFFIC {showTrafficLayer ? 'ON' : 'OFF'}</span>
-          </button>
-
-          {/* Clearance Hazards Toggle */}
-          <button
-            onClick={() => setShowClearanceHazards(!showClearanceHazards)}
-            className={`px-2.5 py-1.5 rounded-xl text-xs font-bold border transition flex items-center gap-1.5 backdrop-blur-md shadow-xs ${
-              showClearanceHazards
-                ? 'bg-amber-50 text-amber-700 border-amber-300'
-                : 'bg-white/95 text-slate-500 border-slate-200 hover:text-slate-800'
-            }`}
-            title="Toggle Physical Road Clearances & Bridge Restriction Markers"
-          >
-            <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
-            <span className="text-[11px] font-mono">CLEARANCES</span>
-          </button>
-
-          {/* Map Layer Switcher */}
+      ) : (
+        /* CLEAN VIEW (Matching Reference Screenshot - Zero overlap with TRK-104 card!) */
+        <div className="absolute top-4 right-4 z-[950] flex flex-col items-end gap-2 pointer-events-auto">
+          {/* Layer Switcher Icon Button */}
           <div className="relative">
             <button
+              type="button"
               onClick={() => setShowLayerMenu(!showLayerMenu)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/95 hover:bg-slate-50 text-slate-700 text-xs font-semibold border border-slate-200 shadow-xs backdrop-blur-md transition"
-              title="Switch Map Tiles (Light / Transit / Sat)"
+              className="w-10 h-10 rounded-xl bg-white/95 hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-md backdrop-blur-md flex items-center justify-center transition hover:border-orange-300 hover:text-[#ea580c]"
+              title="Switch Map Layers (Light / Voyager / Satellite / OpenStreetMap)"
             >
-              <Layers className="w-3.5 h-3.5 text-[#ea580c]" />
-              <span className="hidden sm:inline">{currentTile.name}</span>
+              <Layers className="w-4 h-4" />
             </button>
 
             {showLayerMenu && (
-              <div className="absolute right-0 mt-1.5 p-1.5 rounded-xl bg-white border border-slate-200 shadow-xl backdrop-blur-md flex flex-col gap-1 w-48 animate-in fade-in z-[2000]">
+              <div className="absolute right-0 mt-2 p-1.5 rounded-2xl bg-white border border-slate-200 shadow-2xl backdrop-blur-md flex flex-col gap-1 w-52 animate-in fade-in z-[2000]">
+                <div className="px-3 py-1.5 text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
+                  Select Map Style
+                </div>
                 {Object.entries(tileLayers).map(([key, item]) => (
                   <button
                     key={key}
+                    type="button"
                     onClick={() => {
                       setMapLayer(key);
                       setShowLayerMenu(false);
                     }}
-                    className={`px-2.5 py-1.5 rounded-lg text-left text-xs font-medium transition flex items-center justify-between ${
+                    className={`px-3 py-2 rounded-xl text-left text-xs font-semibold transition flex items-center justify-between ${
                       mapLayer === key
                         ? 'bg-orange-50 text-[#ea580c] font-bold'
                         : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                     }`}
                   >
                     <span>{item.name}</span>
-                    {key.startsWith('google') && (
-                      <span className="text-[9px] px-1 py-0.2 rounded bg-amber-100 text-amber-700 border border-amber-200">G</span>
+                    {key === 'voyager' && (
+                      <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-orange-100 text-[#ea580c] font-bold">DEFAULT</span>
                     )}
                   </button>
                 ))}
               </div>
             )}
           </div>
+
+          {/* Fit / Maximize View Icon Button */}
+          <button
+            type="button"
+            onClick={() => {
+              setFollowVehicle(false);
+            }}
+            className="w-10 h-10 rounded-xl bg-white/95 hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-md backdrop-blur-md flex items-center justify-center transition hover:border-orange-300 hover:text-[#ea580c]"
+            title="Reset / Fit Corridor View"
+          >
+            <Maximize2 className="w-4 h-4" />
+          </button>
         </div>
-      </div>
+      )}
 
       {/* Active Pin Mode Alert Instruction Banner */}
       {pinMode && (
-        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[1000] px-4 py-2 rounded-full glass-panel bg-[#061810]/95 border border-emerald-400 shadow-2xl text-xs font-bold flex items-center gap-2.5 animate-in fade-in zoom-in-95 pointer-events-auto">
-          <Crosshair className="w-4 h-4 text-emerald-400 animate-spin" />
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[1000] px-4 py-2 rounded-full bg-slate-900/95 border border-orange-400 shadow-2xl text-xs font-bold flex items-center gap-2.5 animate-in fade-in zoom-in-95 pointer-events-auto">
+          <Crosshair className="w-4 h-4 text-[#ea580c] animate-spin" />
           <span className="text-white">
             {pinMode === 'origin' && 'Click anywhere on the map to pin Departure Origin (A)'}
             {pinMode === 'destination' && 'Click anywhere on the map to pin Arrival Destination (B)'}

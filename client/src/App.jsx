@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
 import Navbar from './components/common/Navbar';
@@ -33,7 +33,7 @@ function MainAppContent() {
   const [activeScenarioBanner, setActiveScenarioBanner] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const navigate = useNavigate();
-  const location = window.location;
+  const location = useLocation();
   const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
 
   const handleTriggerScenario = (scenario) => {

@@ -300,6 +300,35 @@ export default function TripPlannerPage() {
     }
   };
 
+  const [isLocating, setIsLocating] = useState(false);
+
+  const handleLocateMe = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser.");
+      return;
+    }
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = parseFloat(pos.coords.latitude.toFixed(6));
+        const lng = parseFloat(pos.coords.longitude.toFixed(6));
+        setIsLocating(false);
+        try {
+          const res = await routeApi.reverseGeocode(lat, lng);
+          const address = res?.data?.address || `GPS Location (${lat}, ${lng})`;
+          handleOriginPinned({ lat, lng, address });
+        } catch {
+          handleOriginPinned({ lat, lng, address: `GPS Location (${lat}, ${lng})` });
+        }
+      },
+      (err) => {
+        setIsLocating(false);
+        alert('Could not retrieve device location: ' + err.message);
+      },
+      { timeout: 10000, enableHighAccuracy: true }
+    );
+  };
+
   const handleGenerateRoutes = () => {
     runRouteGeneration(selectedVehicleId, selectedCargoId, originCoord, destCoord, waypoints, cargoWeight, cargoVolume);
   };
@@ -582,6 +611,7 @@ export default function TripPlannerPage() {
                 externalPinMode={pinMode}
                 onPinModeChange={setPinMode}
                 allowPinning={true}
+                cleanView={true}
               />
             </div>
           </div>
@@ -622,17 +652,29 @@ export default function TripPlannerPage() {
                       <span className="w-2 h-2 rounded-full bg-[#ea580c]" />
                       <span>Departure (Pin A)</span>
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => setPinMode(pinMode === 'origin' ? null : 'origin')}
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded transition ${
-                        pinMode === 'origin'
-                          ? 'bg-[#ea580c] text-white'
-                          : 'text-[#ea580c] hover:bg-orange-50'
-                      }`}
-                    >
-                      {pinMode === 'origin' ? 'Click Map' : 'Pin on Map'}
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={handleLocateMe}
+                        disabled={isLocating}
+                        className="text-[10px] font-bold px-2 py-0.5 rounded bg-orange-50 text-[#ea580c] hover:bg-orange-100 border border-orange-200 transition flex items-center gap-1"
+                        title="Locate via device GPS"
+                      >
+                        <Radio className={`w-3 h-3 ${isLocating ? 'animate-spin' : ''}`} />
+                        <span>{isLocating ? 'GPS...' : 'Locate Me'}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPinMode(pinMode === 'origin' ? null : 'origin')}
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded transition ${
+                          pinMode === 'origin'
+                            ? 'bg-[#ea580c] text-white shadow-xs'
+                            : 'text-[#ea580c] hover:bg-orange-50'
+                        }`}
+                      >
+                        {pinMode === 'origin' ? 'Click Map' : 'Pin on Map'}
+                      </button>
+                    </div>
                   </div>
                   <input
                     type="text"
