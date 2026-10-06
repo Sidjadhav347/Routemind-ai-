@@ -27,6 +27,7 @@ import {
 export default function CoLoadingFeatureSection({
   currentOrigin = 'Mumbai, Maharashtra',
   currentDestination = 'Pune, Maharashtra',
+  currentWeight = 2500,
   onApplyLaneToPlanner = () => {}
 }) {
   const [matches, setMatches] = useState([]);
@@ -65,13 +66,17 @@ export default function CoLoadingFeatureSection({
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [currentOrigin, currentDestination, currentWeight]);
 
   const loadData = async () => {
     setLoading(true);
     try {
       const [matchesRes, listingsRes, statsRes] = await Promise.all([
-        coloadingApi.getMatches(),
+        coloadingApi.getMatches({
+          origin: currentOrigin,
+          destination: currentDestination,
+          weight: currentWeight || 2500
+        }),
         coloadingApi.getListings(),
         coloadingApi.getStats()
       ]);
@@ -86,13 +91,15 @@ export default function CoLoadingFeatureSection({
     }
   };
 
-  // Calculations for Company A 60% Capacity Simulator
-  const totalPallets = 20;
+  // Dynamic calculations based on user shipment load
+  const parsedWeight = parseFloat(currentWeight) || 2500;
+  const simulatedTotalCapacity = Math.max(5000, Math.round(parsedWeight * 1.6));
+  const totalPallets = Math.max(10, Math.round(simulatedTotalCapacity / 500));
   const filledPallets = Math.round(totalPallets * (fillPercent / 100));
   const emptyPercent = 100 - fillPercent;
   const emptyPallets = totalPallets - filledPallets;
 
-  const baseCost = 24000;
+  const baseCost = Math.round(simulatedTotalCapacity * 3.2);
   const rawCostA = Math.round(baseCost * (fillPercent / 100));
   const rawCostB = Math.round(baseCost * (emptyPercent / 100));
   const savingsA = Math.round(baseCost - rawCostA);

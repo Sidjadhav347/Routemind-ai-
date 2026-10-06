@@ -8,9 +8,10 @@ export class AuthController {
   static async register(req, res, next) {
     try {
       const { email, password, name, role = 'OPERATOR' } = req.body;
+      const cleanEmail = (email || '').trim().toLowerCase();
 
       // Check if user already exists
-      const existing = Database.findOne('users', u => u.email.toLowerCase() === email.toLowerCase());
+      const existing = Database.findOne('users', u => u.email.toLowerCase() === cleanEmail);
       if (existing) {
         return res.status(400).json({
           success: false,
@@ -67,8 +68,8 @@ export class AuthController {
   static async login(req, res, next) {
     try {
       const { email, password } = req.body;
-
-      const user = Database.findOne('users', u => u.email.toLowerCase() === email.toLowerCase());
+      const cleanEmail = (email || '').trim().toLowerCase();
+      const user = Database.findOne('users', u => u.email.toLowerCase() === cleanEmail);
       if (!user) {
         return res.status(401).json({
           success: false,

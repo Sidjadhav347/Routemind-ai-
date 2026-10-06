@@ -8,6 +8,7 @@ const router = Router();
 
 router.use(authenticate);
 
+router.get('/status', AIController.getStatus);
 router.post('/chat', validateBody(aiChatSchema), AIController.chat);
 router.post('/explain', AIController.explainRoute);
 router.post('/simulate', validateBody(simulatorSchema), AIController.runSimulation);

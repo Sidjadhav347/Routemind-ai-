@@ -22,52 +22,52 @@ export const config = {
   // All weights are normalized between 0.0 and 1.0
   optimizationWeights: {
     FASTEST: {
-      time: 0.50,
+      time: 0.60,
       traffic: 0.20,
-      cost: 0.10,
-      fuel: 0.05,
-      deadline: 0.10,
-      reliability: 0.05
+      cost: 0.08,
+      fuel: 0.04,
+      deadline: 0.04,
+      reliability: 0.04
     },
     CHEAPEST: {
-      time: 0.10,
-      traffic: 0.05,
-      cost: 0.55,
-      fuel: 0.15,
-      deadline: 0.10,
-      reliability: 0.05
+      time: 0.06,
+      traffic: 0.04,
+      cost: 0.70,
+      fuel: 0.14,
+      deadline: 0.03,
+      reliability: 0.03
     },
     FUEL_EFFICIENT: {
-      time: 0.10,
-      traffic: 0.15,
-      cost: 0.15,
-      fuel: 0.50,
+      time: 0.08,
+      traffic: 0.12,
+      cost: 0.12,
+      fuel: 0.60,
+      deadline: 0.04,
+      reliability: 0.04
+    },
+    LOW_TRAFFIC: {
+      time: 0.15,
+      traffic: 0.60,
+      cost: 0.08,
+      fuel: 0.07,
       deadline: 0.05,
       reliability: 0.05
     },
-    LOW_TRAFFIC: {
-      time: 0.20,
-      traffic: 0.50,
-      cost: 0.05,
-      fuel: 0.10,
-      deadline: 0.05,
-      reliability: 0.10
-    },
     DEADLINE_PRIORITY: {
-      time: 0.30,
-      traffic: 0.15,
+      time: 0.25,
+      traffic: 0.12,
       cost: 0.05,
       fuel: 0.05,
-      deadline: 0.35,
-      reliability: 0.10
+      deadline: 0.45,
+      reliability: 0.08
     },
     BALANCED: {
       time: 0.25,
       traffic: 0.20,
-      cost: 0.20,
+      cost: 0.22,
       fuel: 0.15,
       deadline: 0.10,
-      reliability: 0.10
+      reliability: 0.08
     }
   },
 

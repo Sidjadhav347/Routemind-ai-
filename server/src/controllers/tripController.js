@@ -5,82 +5,280 @@ import { DeparturePredictorService } from '../services/trips/departurePredictorS
 import { DynamicRerouteService } from '../services/traffic/dynamicRerouteService.js';
 import { AIService } from '../services/ai/geminiService.js';
 import { TrafficMonitorService } from '../services/traffic/trafficMonitorService.js';
+import { GeocodingService } from '../services/maps/geocodingService.js';
 
 export class TripController {
-  static async createTrip(req, res, next) {
-    try {
-      const {
-        origin,
-        destination,
-        waypoints = [],
-        vehicle_id,
-        cargo_id = null,
-        desired_arrival_time = null,
-        max_budget = null,
-        optimization_mode = 'BALANCED'
-      } = req.body;
+  /**
+   * Helper to normalize location (geocodes string queries if needed)
+   */
+  static async resolveLocation(loc, defaultName = 'Location') {
+    if (typeof loc === 'string') {
+      const geo = await GeocodingService.geocode(loc);
+      if (!geo) {
+        throw new Error(`Unable to resolve location coordinates for: "${loc}". Please check the address.`);
+      }
+      return geo;
+    }
+    if (loc && typeof loc.lat === 'number' && typeof loc.lng === 'number') {
+      return {
+        address: loc.address || `${defaultName} (${loc.lat.toFixed(4)}, ${loc.lng.toFixed(4)})`,
+        lat: loc.lat,
+        lng: loc.lng
+      };
+    }
+    throw new Error(`Invalid location coordinates for ${defaultName}.`);
+  }
 
-      // 1. Fetch vehicle and cargo
-      const vehicle = Database.findById('vehicles', vehicle_id);
-      if (!vehicle) {
+  /**
+   * Core optimization processor shared by createTrip and optimizeTrip
+   */
+  static async processTripOptimization(reqBody, userId = null) {
+    const {
+      origin: rawOrigin,
+      destination: rawDestination,
+      waypoints: rawWaypoints = [],
+      vehicle_id,
+      vehicleType,
+      vehicle_type,
+      cargo_id = null,
+      weight,
+      weight_kg,
+      desired_arrival_time = null,
+      deadline = null,
+      max_budget = null,
+      budget = null,
+      optimization_mode = 'BALANCED',
+      optimizationMode
+    } = reqBody;
+
+    // 1. Resolve & normalize origin and destination coordinates
+    const origin = await TripController.resolveLocation(rawOrigin, 'Departure Origin');
+    const destination = await TripController.resolveLocation(rawDestination, 'Arrival Destination');
+
+    const waypoints = [];
+    if (Array.isArray(rawWaypoints)) {
+      for (let i = 0; i < rawWaypoints.length; i++) {
+        const wp = await TripController.resolveLocation(rawWaypoints[i], `Waypoint ${i + 1}`);
+        waypoints.push(wp);
+      }
+    }
+
+    // 2. Fetch or construct vehicle
+    const targetType = vehicleType || vehicle_type;
+    let vehicle = null;
+
+    if (vehicle_id) {
+      vehicle = Database.findById('vehicles', vehicle_id);
+    }
+    if (!vehicle && targetType) {
+      const allVehicles = Database.get('vehicles');
+      vehicle = allVehicles.find(v => v.type === targetType.toUpperCase());
+    }
+    if (!vehicle) {
+      // Default fallback vehicle if fleet not specified
+      const allVehicles = Database.get('vehicles');
+      vehicle = allVehicles[0] || {
+        id: uuidv4(),
+        name: 'Standard Commercial Transport',
+        type: 'HEAVY_TRUCK',
+        max_weight_capacity_kg: 16000,
+        tare_weight_kg: 7500,
+        height_m: 3.8,
+        width_m: 2.55,
+        length_m: 12.5,
+        fuel_type: 'DIESEL',
+        fuel_efficiency_km_l: 3.8,
+        fuel_price_per_unit: 92.50
+      };
+    }
+
+    // 3. Resolve cargo and explicit shipment weight
+    let cargo = cargo_id ? Database.findById('cargo', cargo_id) : null;
+    const explicitWeight = weight !== undefined && weight !== null ? parseFloat(weight) :
+      (weight_kg !== undefined && weight_kg !== null ? parseFloat(weight_kg) : null);
+
+    if (explicitWeight !== null && !isNaN(explicitWeight)) {
+      if (cargo) {
+        cargo = { ...cargo, weight_kg: explicitWeight };
+      } else {
+        cargo = {
+          id: 'custom-cargo',
+          name: `Custom Consignment (${explicitWeight.toLocaleString()} kg)`,
+          weight_kg: explicitWeight,
+          type: 'GENERAL'
+        };
+      }
+    }
+
+    const shipmentWeightKg = cargo ? parseFloat(cargo.weight_kg || 0) : 0;
+    const vehicleMaxCapacityKg = parseFloat(vehicle.max_weight_capacity_kg || 1000);
+
+    // 4. CRITICAL REJECTION: Vehicle payload capacity constraint validation
+    if (shipmentWeightKg > vehicleMaxCapacityKg) {
+      const err = new Error('Vehicle payload capacity cannot be less than shipment weight.');
+      err.statusCode = 400;
+      err.code = 'CAPACITY_EXCEEDED';
+      err.details = {
+        shipmentWeightKg,
+        vehicleMaxCapacityKg,
+        vehicleName: vehicle.name,
+        vehicleType: vehicle.type
+      };
+      throw err;
+    }
+
+    // 5. Budget and deadline parameters
+    const budgetVal = budget !== null && budget !== undefined ? parseFloat(budget) :
+      (max_budget !== null && max_budget !== undefined ? parseFloat(max_budget) : null);
+
+    const deadlineVal = desired_arrival_time || deadline || null;
+    const activeMode = (optimizationMode || optimization_mode || 'BALANCED').toUpperCase();
+
+    const tripId = uuidv4();
+
+    // 6. Generate candidate routes dynamically
+    const candidateRoutes = await RouteGeneratorService.generateTripRoutes({
+      tripId,
+      origin,
+      destination,
+      waypoints,
+      vehicle,
+      cargo,
+      optimizationMode: activeMode,
+      desiredArrivalTime: deadlineVal,
+      maxBudget: budgetVal
+    });
+
+    if (!candidateRoutes || candidateRoutes.length === 0) {
+      throw new Error('Unable to calculate this route. Please check the locations and try again.');
+    }
+
+    // Identify recommended route
+    const recommendedRoute = candidateRoutes.find(r => r.is_recommended) || candidateRoutes[0];
+    const alternativeRoutes = candidateRoutes.filter(r => r.id !== recommendedRoute.id);
+
+    // 7. Check budget feasibility across routes
+    const minCostRoute = candidateRoutes.reduce((min, r) => (!min || r.total_cost < min.total_cost ? r : min), null);
+    let budgetWarning = null;
+    let budgetSatisfied = true;
+
+    if (budgetVal && budgetVal > 0 && minCostRoute) {
+      if (minCostRoute.total_cost > budgetVal) {
+        budgetSatisfied = false;
+        budgetWarning = `No route currently satisfies your budget of ₹${budgetVal.toLocaleString()}. The closest feasible option is ₹${minCostRoute.total_cost.toLocaleString()} (${minCostRoute.route_code}).`;
+      }
+    }
+
+    // 8. Departure prediction
+    const departurePrediction = DeparturePredictorService.predictDepartureWindows({
+      desiredDeadline: deadlineVal,
+      baseDurationMinutes: recommendedRoute.duration_minutes,
+      trafficCondition: recommendedRoute.traffic_level
+    });
+
+    // 9. AI Route Explanation grounded on real computed data
+    const aiExplanation = await AIService.explainRouteRecommendation({
+      recommendedRoute,
+      alternativeRoutes,
+      vehicle,
+      cargo,
+      optimizationMode: activeMode,
+      deadlineTime: deadlineVal,
+      maxBudget: budgetVal
+    });
+
+    // If budget is not satisfied, append clear advisory to AI explanation
+    if (!budgetSatisfied && budgetWarning) {
+      aiExplanation.warnings = aiExplanation.warnings || [];
+      if (!aiExplanation.warnings.some(w => w.includes('budget'))) {
+        aiExplanation.warnings.unshift(budgetWarning);
+      }
+    }
+
+    return {
+      tripId,
+      origin,
+      destination,
+      waypoints,
+      vehicle,
+      cargo,
+      budgetVal,
+      deadlineVal,
+      activeMode,
+      candidateRoutes,
+      recommendedRoute,
+      alternativeRoutes,
+      departurePrediction,
+      aiExplanation,
+      budgetWarning,
+      budgetSatisfied
+    };
+  }
+
+  static async optimizeTrip(req, res, next) {
+    try {
+      const optimization = await TripController.processTripOptimization(req.body, req.user?.id);
+      res.json({
+        success: true,
+        data: {
+          routes: optimization.candidateRoutes,
+          recommendedRoute: optimization.recommendedRoute,
+          departurePrediction: optimization.departurePrediction,
+          aiExplanation: optimization.aiExplanation,
+          budgetWarning: optimization.budgetWarning,
+          budgetSatisfied: optimization.budgetSatisfied,
+          vehicle: optimization.vehicle,
+          cargo: optimization.cargo
+        }
+      });
+    } catch (err) {
+      if (err.statusCode === 400 || err.code === 'CAPACITY_EXCEEDED') {
         return res.status(400).json({
           success: false,
-          error: { code: 'VEHICLE_NOT_FOUND', message: 'Selected vehicle does not exist.' }
+          error: err.message || 'Vehicle payload capacity cannot be less than shipment weight.',
+          details: err.details || null
         });
       }
+      next(err);
+    }
+  }
 
-      const cargo = cargo_id ? Database.findById('cargo', cargo_id) : null;
-
-      const tripId = uuidv4();
-
-      // 2. Generate and score multiple candidate routes
-      const candidateRoutes = await RouteGeneratorService.generateTripRoutes({
+  static async createTrip(req, res, next) {
+    try {
+      const optimization = await TripController.processTripOptimization(req.body, req.user?.id);
+      const {
         tripId,
         origin,
         destination,
         waypoints,
         vehicle,
         cargo,
-        optimizationMode: optimization_mode,
-        desiredArrivalTime: desired_arrival_time
-      });
+        budgetVal,
+        deadlineVal,
+        activeMode,
+        candidateRoutes,
+        recommendedRoute,
+        departurePrediction,
+        aiExplanation,
+        budgetWarning,
+        budgetSatisfied
+      } = optimization;
 
       // Save routes to DB
       for (const r of candidateRoutes) {
         Database.insert('trip_routes', r);
       }
 
-      // Identify recommended route
-      const recommendedRoute = candidateRoutes.find(r => r.is_recommended) || candidateRoutes[0];
-      const alternativeRoutes = candidateRoutes.filter(r => r.id !== recommendedRoute.id);
-
-      // 3. Departure prediction
-      const departurePrediction = DeparturePredictorService.predictDepartureWindows({
-        desiredDeadline: desired_arrival_time,
-        baseDurationMinutes: recommendedRoute.duration_minutes,
-        trafficCondition: recommendedRoute.traffic_level
-      });
-
       Database.insert('departure_predictions', {
         id: uuidv4(),
         trip_id: tripId,
-        deadline_time: desired_arrival_time || new Date(Date.now() + 180 * 60 * 1000).toISOString(),
+        deadline_time: deadlineVal || new Date(Date.now() + 180 * 60 * 1000).toISOString(),
         recommended_departure: departurePrediction.recommendedDeparture,
         expected_arrival: departurePrediction.expectedArrival,
         safety_buffer_minutes: departurePrediction.safetyBufferMinutes,
         traffic_risk: departurePrediction.trafficRisk,
         deadline_confidence: departurePrediction.deadlineConfidence,
         scenarios: departurePrediction.scenarios
-      });
-
-      // 4. AI Route Explanation
-      const aiExplanation = await AIService.explainRouteRecommendation({
-        recommendedRoute,
-        alternativeRoutes,
-        vehicle,
-        cargo,
-        optimizationMode: optimization_mode,
-        deadlineTime: desired_arrival_time
       });
 
       Database.insert('ai_recommendations', {
@@ -94,10 +292,10 @@ export class TripController {
         confidence_percent: aiExplanation.confidence
       });
 
-      // 5. Create Master Trip Record
+      // Create Master Trip Record
       const newTrip = Database.insert('trips', {
         id: tripId,
-        user_id: req.user.id,
+        user_id: req.user ? req.user.id : '00000000-0000-4000-a000-000000000001',
         origin_address: origin.address,
         origin_lat: origin.lat,
         origin_lng: origin.lng,
@@ -105,11 +303,11 @@ export class TripController {
         destination_lat: destination.lat,
         destination_lng: destination.lng,
         waypoints,
-        vehicle_id,
-        cargo_id,
-        desired_arrival_time,
-        max_budget,
-        optimization_mode,
+        vehicle_id: vehicle.id,
+        cargo_id: cargo ? cargo.id : null,
+        desired_arrival_time: deadlineVal,
+        max_budget: budgetVal,
+        optimization_mode: activeMode,
         status: 'READY',
         current_route_id: recommendedRoute.id,
         distance_km: recommendedRoute.distance_km,
@@ -124,10 +322,19 @@ export class TripController {
           routes: candidateRoutes,
           recommendedRoute,
           departurePrediction,
-          aiExplanation
+          aiExplanation,
+          budgetWarning,
+          budgetSatisfied
         }
       });
     } catch (err) {
+      if (err.statusCode === 400 || err.code === 'CAPACITY_EXCEEDED') {
+        return res.status(400).json({
+          success: false,
+          error: err.message || 'Vehicle payload capacity cannot be less than shipment weight.',
+          details: err.details || null
+        });
+      }
       next(err);
     }
   }

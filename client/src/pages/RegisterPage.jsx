@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Navigation, Lock, Mail, User, ArrowRight } from 'lucide-react';
+import { Navigation, Lock, Mail, User, ArrowRight, AlertTriangle } from 'lucide-react';
 
 export default function RegisterPage() {
   const [name, setName] = useState('');
@@ -11,18 +11,31 @@ export default function RegisterPage() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const { register } = useAuth();
+  const { register, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleRegister = async (e) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
+
+    const cleanEmail = (email || '').trim();
+    const cleanName = (name || '').trim();
+
     try {
-      await register({ name, email, password, role });
+      await register({ name: cleanName, email: cleanEmail, password, role });
       navigate('/');
     } catch (err) {
-      setError(err.message || 'Registration failed');
+      const errMsg = typeof err === 'string'
+        ? err
+        : (err?.message || err?.error || 'Registration failed');
+      setError(errMsg);
     } finally {
       setLoading(false);
     }

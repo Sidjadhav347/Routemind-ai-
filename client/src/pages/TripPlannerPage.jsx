@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { tripApi, vehicleApi, cargoApi, routeApi } from '../services/api';
 import RouteMap from '../components/map/RouteMap';
 import {
@@ -20,14 +20,49 @@ import {
   Calendar,
   Compass,
   ArrowRight,
-  Share2
+  Share2,
+  Radio
 } from 'lucide-react';
 import CoLoadingFeatureSection from '../components/coloading/CoLoadingFeatureSection';
 
 const PRESET_CORRIDORS = [
-  { name: 'Mumbai → Pune (Hackathon Core)', origin: 'Mumbai, Maharashtra', dest: 'Pune, Maharashtra' },
-  { name: 'Bhiwandi Hub → Chakan Auto Hub', origin: 'Bhiwandi Logistics Hub, Maharashtra', dest: 'Chakan Auto Corridor, Pune' },
-  { name: 'JNPT Port → Hinjawadi Tech Park', origin: 'Navi Mumbai, Maharashtra', dest: 'Pune, Maharashtra' }
+  {
+    name: 'Mumbai → Pune (Hackathon Core)',
+    origin: 'Mumbai, Maharashtra',
+    dest: 'Pune, Maharashtra',
+    originCoord: { lat: 19.0760, lng: 72.8777, address: 'Mumbai, Maharashtra' },
+    destCoord: { lat: 18.5204, lng: 73.8567, address: 'Pune, Maharashtra' }
+  },
+  {
+    name: 'Nashik → Mumbai (Agro Corridor)',
+    origin: 'Nashik, Maharashtra',
+    dest: 'Mumbai, Maharashtra',
+    originCoord: { lat: 19.9975, lng: 73.7898, address: 'Nashik, Maharashtra' },
+    destCoord: { lat: 19.0760, lng: 72.8777, address: 'Mumbai, Maharashtra' }
+  },
+  {
+    name: 'Bhiwandi Hub → Chakan Auto Hub',
+    origin: 'Bhiwandi Logistics Hub, Maharashtra',
+    dest: 'Chakan Auto Corridor, Pune',
+    originCoord: { lat: 19.2967, lng: 73.0631, address: 'Bhiwandi Logistics Hub, Maharashtra' },
+    destCoord: { lat: 18.7606, lng: 73.8617, address: 'Chakan Auto Corridor, Pune' }
+  },
+  {
+    name: 'JNPT Port → Hinjawadi Tech Park',
+    origin: 'Navi Mumbai, Maharashtra',
+    dest: 'Hinjawadi, Pune',
+    originCoord: { lat: 18.9499, lng: 72.9515, address: 'Navi Mumbai, Maharashtra' },
+    destCoord: { lat: 18.5913, lng: 73.7389, address: 'Hinjawadi, Pune' }
+  }
+];
+
+const LOADING_STEPS = [
+  'Analyzing candidate corridors...',
+  'Checking real-time traffic & bottlenecks...',
+  'Checking vehicle load & road clearance constraints...',
+  'Calculating dynamic fuel, toll & operating costs...',
+  'Scanning co-loading capacity opportunities...',
+  'Generating AI recommendation grounded in telemetry...'
 ];
 
 const OPTIMIZATION_MODES = [
@@ -41,6 +76,7 @@ const OPTIMIZATION_MODES = [
 
 export default function TripPlannerPage() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Form State
   const [originQuery, setOriginQuery] = useState('Mumbai, Maharashtra');
@@ -54,18 +90,55 @@ export default function TripPlannerPage() {
   const [cargoList, setCargoList] = useState([]);
   const [selectedVehicleId, setSelectedVehicleId] = useState('');
   const [selectedCargoId, setSelectedCargoId] = useState('');
+  const [cargoWeight, setCargoWeight] = useState(2500);
+  const [cargoVolume, setCargoVolume] = useState(12);
   const [optimizationMode, setOptimizationMode] = useState('BALANCED');
   const [desiredDeadline, setDesiredDeadline] = useState('18:00'); // 6:00 PM
   const [budget, setBudget] = useState('2000');
 
   // Calculation Results
   const [loading, setLoading] = useState(false);
+  const [loadingStep, setLoadingStep] = useState(0);
   const [generatedTrip, setGeneratedTrip] = useState(null);
   const [routes, setRoutes] = useState([]);
   const [selectedRouteId, setSelectedRouteId] = useState(null);
   const [departurePrediction, setDeparturePrediction] = useState(null);
   const [aiExplanation, setAiExplanation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
+
+  // Progressive loading message interval
+  useEffect(() => {
+    let interval;
+    if (loading) {
+      setLoadingStep(0);
+      interval = setInterval(() => {
+        setLoadingStep((prev) => (prev + 1) % LOADING_STEPS.length);
+      }, 500);
+    }
+    return () => clearInterval(interval);
+  }, [loading]);
+
+  // Sync AI Co-Pilot pre-filled logistics parameters
+  useEffect(() => {
+    if (location.state?.prefill) {
+      const { origin, destination, deadline } = location.state.prefill;
+      if (origin) {
+        setOriginQuery(origin);
+        routeApi.geocode(origin).then(res => {
+          if (res.success && res.data) setOriginCoord(res.data);
+        }).catch(() => {});
+      }
+      if (destination) {
+        setDestinationQuery(destination);
+        routeApi.geocode(destination).then(res => {
+          if (res.success && res.data) setDestCoord(res.data);
+        }).catch(() => {});
+      }
+      if (deadline && deadline.includes(':')) {
+        setDesiredDeadline(deadline);
+      }
+    }
+  }, [location.state]);
 
   useEffect(() => {
     loadFleetAndCargo();
@@ -81,6 +154,8 @@ export default function TripPlannerPage() {
       const [vRes, cRes] = await Promise.all([vehicleApi.getAll(), cargoApi.getAll()]);
       let defaultVehId = null;
       let defaultCargoId = null;
+      let defaultW = 2500;
+      let defaultV = 12;
       if (vRes.success && vRes.data.length > 0) {
         setVehicles(vRes.data);
         const heavy = vRes.data.find(v => v.type === 'HEAVY_TRUCK') || vRes.data[0];
@@ -91,10 +166,14 @@ export default function TripPlannerPage() {
         setCargoList(cRes.data);
         defaultCargoId = cRes.data[0].id;
         setSelectedCargoId(defaultCargoId);
+        defaultW = cRes.data[0].weight_kg || 2500;
+        defaultV = cRes.data[0].volume_m3 || 12;
+        setCargoWeight(defaultW);
+        setCargoVolume(defaultV);
       }
       // Automatically generate initial routes on first view
       if (defaultVehId) {
-        runRouteGeneration(defaultVehId, defaultCargoId);
+        runRouteGeneration(defaultVehId, defaultCargoId, originCoord, destCoord, [], defaultW, defaultV);
       }
     } catch (err) {
       console.warn('Failed to load fleet/cargo:', err);
@@ -104,29 +183,38 @@ export default function TripPlannerPage() {
   const handleApplyPreset = (preset) => {
     setOriginQuery(preset.origin);
     setDestinationQuery(preset.dest);
-    const newOrig = { lat: 19.0760, lng: 72.8777, address: preset.origin };
-    const newDest = { lat: 18.5204, lng: 73.8567, address: preset.dest };
+    const newOrig = preset.originCoord || { lat: 19.0760, lng: 72.8777, address: preset.origin };
+    const newDest = preset.destCoord || { lat: 18.5204, lng: 73.8567, address: preset.dest };
     setOriginCoord(newOrig);
     setDestCoord(newDest);
     setWaypoints([]);
-    runRouteGeneration(selectedVehicleId, selectedCargoId, newOrig, newDest, []);
+    runRouteGeneration(selectedVehicleId, selectedCargoId, newOrig, newDest, [], cargoWeight, cargoVolume);
   };
 
   const handleOriginPinned = (newOrigin) => {
     setOriginCoord(newOrigin);
     setOriginQuery(newOrigin.address || `${newOrigin.lat}, ${newOrigin.lng}`);
-    runRouteGeneration(selectedVehicleId, selectedCargoId, newOrigin, destCoord, waypoints);
+    runRouteGeneration(selectedVehicleId, selectedCargoId, newOrigin, destCoord, waypoints, cargoWeight, cargoVolume);
   };
 
   const handleDestinationPinned = (newDest) => {
     setDestCoord(newDest);
     setDestinationQuery(newDest.address || `${newDest.lat}, ${newDest.lng}`);
-    runRouteGeneration(selectedVehicleId, selectedCargoId, originCoord, newDest, waypoints);
+    runRouteGeneration(selectedVehicleId, selectedCargoId, originCoord, newDest, waypoints, cargoWeight, cargoVolume);
   };
 
   const handleWaypointsChanged = (newWaypoints) => {
     setWaypoints(newWaypoints);
-    runRouteGeneration(selectedVehicleId, selectedCargoId, originCoord, destCoord, newWaypoints);
+    runRouteGeneration(selectedVehicleId, selectedCargoId, originCoord, destCoord, newWaypoints, cargoWeight, cargoVolume);
+  };
+
+  const handleCargoSelection = (cId) => {
+    setSelectedCargoId(cId);
+    const cargo = cargoList.find(c => c.id === cId);
+    if (cargo) {
+      setCargoWeight(cargo.weight_kg);
+      setCargoVolume(cargo.volume_m3 || 10);
+    }
   };
 
   const runRouteGeneration = async (
@@ -134,7 +222,9 @@ export default function TripPlannerPage() {
     cId = selectedCargoId,
     orig = originCoord,
     dest = destCoord,
-    wps = waypoints
+    wps = waypoints,
+    weightVal = cargoWeight,
+    volumeVal = cargoVolume
   ) => {
     const activeVehId = vId || selectedVehicleId;
     if (!activeVehId) {
@@ -142,6 +232,12 @@ export default function TripPlannerPage() {
       return;
     }
     setErrorMsg(null);
+    // Clear old results immediately (Requirement 22)
+    setGeneratedTrip(null);
+    setRoutes([]);
+    setSelectedRouteId(null);
+    setDeparturePrediction(null);
+    setAiExplanation(null);
     setLoading(true);
 
     try {
@@ -149,26 +245,48 @@ export default function TripPlannerPage() {
       const [hours, minutes] = desiredDeadline.split(':');
       today.setHours(parseInt(hours || '18', 10), parseInt(minutes || '0', 10), 0, 0);
 
+      const chosenVehicle = vehicles.find(v => v.id === activeVehId);
+      const effectiveWeight = parseFloat(weightVal) || 0;
+      const effectiveVolume = parseFloat(volumeVal) || 0;
+      const parsedBudget = parseFloat(budget) || 2000;
+
       const payload = {
         origin: orig || originCoord,
         destination: dest || destCoord,
         waypoints: wps || waypoints,
         vehicle_id: activeVehId,
+        vehicleType: chosenVehicle?.type,
         cargo_id: cId || selectedCargoId || null,
+        weight: effectiveWeight,
+        weight_kg: effectiveWeight,
+        volume: effectiveVolume,
+        volume_m3: effectiveVolume,
         desired_arrival_time: today.toISOString(),
-        max_budget: parseFloat(budget) || 2000,
-        optimization_mode: optimizationMode
+        deadline: desiredDeadline,
+        budget: parsedBudget,
+        max_budget: parsedBudget,
+        optimization_mode: optimizationMode,
+        optimizationMode: optimizationMode
       };
 
+      console.log('Trip Input:', payload); // Debugging log (Requirement 24)
+
       const res = await tripApi.create(payload);
+      console.log('Optimization Response:', res.data); // Debugging log (Requirement 24)
+
       if (res.success && res.data) {
         setGeneratedTrip(res.data.trip);
         setRoutes(res.data.routes);
         setSelectedRouteId(res.data.recommendedRoute?.id || res.data.routes[0]?.id);
         setDeparturePrediction(res.data.departurePrediction);
         setAiExplanation(res.data.aiExplanation);
+        if (res.data.trip?.origin?.lat && res.data.trip?.destination?.lat) {
+          setOriginCoord(res.data.trip.origin);
+          setDestCoord(res.data.trip.destination);
+        }
       }
     } catch (err) {
+      console.error('Trip optimization error:', err);
       setErrorMsg(err.message || 'Failed to optimize routes. Please verify constraints.');
     } finally {
       setLoading(false);
@@ -176,7 +294,7 @@ export default function TripPlannerPage() {
   };
 
   const handleGenerateRoutes = () => {
-    runRouteGeneration(selectedVehicleId, selectedCargoId, originCoord, destCoord, waypoints);
+    runRouteGeneration(selectedVehicleId, selectedCargoId, originCoord, destCoord, waypoints, cargoWeight, cargoVolume);
   };
 
   const handleStartTrip = async () => {
@@ -317,18 +435,52 @@ export default function TripPlannerPage() {
                     <span className="w-2 h-2 rounded-full bg-emerald-400" />
                     <span>Departure Origin (Pin A)</span>
                   </label>
-                  <button
-                    type="button"
-                    onClick={() => setPinMode(pinMode === 'origin' ? null : 'origin')}
-                    className={`text-[11px] px-2.5 py-0.5 rounded-lg border flex items-center gap-1 transition font-medium ${
-                      pinMode === 'origin'
-                        ? 'bg-emerald-500 text-slate-950 font-bold border-emerald-400 shadow-emerald-glow'
-                        : 'text-emerald-400 border-emerald-500/30 hover:bg-emerald-950/40'
-                    }`}
-                  >
-                    <MapPin className="w-3 h-3" />
-                    <span>{pinMode === 'origin' ? 'Click Map to Place' : 'Pin on Map'}</span>
-                  </button>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!navigator.geolocation) {
+                          alert('Geolocation is not supported by your browser.');
+                          return;
+                        }
+                        navigator.geolocation.getCurrentPosition(
+                          async (pos) => {
+                            const lat = parseFloat(pos.coords.latitude.toFixed(6));
+                            const lng = parseFloat(pos.coords.longitude.toFixed(6));
+                            try {
+                              const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=14`, {
+                                headers: { 'User-Agent': 'RouteMind-Map-App/1.0' }
+                              });
+                              const data = await res.json();
+                              const address = data?.display_name ? data.display_name.split(', ').slice(0, 3).join(', ') : `Current Location (${lat}, ${lng})`;
+                              handleOriginPinned({ lat, lng, address });
+                            } catch {
+                              handleOriginPinned({ lat, lng, address: `Current Location (${lat}, ${lng})` });
+                            }
+                          },
+                          (err) => alert('Unable to retrieve GPS position: ' + err.message),
+                          { enableHighAccuracy: true, timeout: 8000 }
+                        );
+                      }}
+                      className="text-[11px] px-2.5 py-0.5 rounded-lg border border-cyan-500/40 text-cyan-300 hover:bg-cyan-950/40 flex items-center gap-1 transition font-medium"
+                      title="Use current GPS location as departure origin"
+                    >
+                      <Radio className="w-3 h-3 text-cyan-400" />
+                      <span>My GPS</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPinMode(pinMode === 'origin' ? null : 'origin')}
+                      className={`text-[11px] px-2.5 py-0.5 rounded-lg border flex items-center gap-1 transition font-medium ${
+                        pinMode === 'origin'
+                          ? 'bg-emerald-500 text-slate-950 font-bold border-emerald-400 shadow-emerald-glow'
+                          : 'text-emerald-400 border-emerald-500/30 hover:bg-emerald-950/40'
+                      }`}
+                    >
+                      <MapPin className="w-3 h-3" />
+                      <span>{pinMode === 'origin' ? 'Click Map to Place' : 'Pin on Map'}</span>
+                    </button>
+                  </div>
                 </div>
                 <div className="relative">
                   <input
@@ -467,27 +619,69 @@ export default function TripPlannerPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1">Cargo Consignment</label>
+                <label className="block text-xs font-semibold text-slate-400 mb-1">Cargo Consignment Template</label>
                 <select
                   value={selectedCargoId}
-                  onChange={(e) => setSelectedCargoId(e.target.value)}
+                  onChange={(e) => handleCargoSelection(e.target.value)}
                   className="w-full bg-slate-900/90 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition"
                 >
-                  <option value="">No Special Cargo (Empty Transit)</option>
+                  <option value="">Custom / Direct Entry</option>
                   {cargoList.map(c => (
                     <option key={c.id} value={c.id}>
-                      {c.name} ({c.weight_kg} kg) • Priority: {c.priority}
+                      {c.name} ({c.weight_kg} kg, {c.volume_m3 || 10} m³) • {c.priority}
                     </option>
                   ))}
                 </select>
 
-                {selectedVehicle && selectedCargo && (
-                  <div className="mt-2 p-2 rounded-xl bg-indigo-950/30 border border-indigo-800/40 text-[11px] flex items-center justify-between text-indigo-300">
-                    <span>Total Gross Load:</span>
-                    <span className="font-bold text-white">
-                      {(selectedVehicle.tare_weight_kg + selectedCargo.weight_kg).toLocaleString()} kg
-                      ({((selectedVehicle.tare_weight_kg + selectedCargo.weight_kg) / 1000).toFixed(1)} Tonnes)
-                    </span>
+                {/* Explicit Real Weight & Volume Inputs (Requirement 3 & 9) */}
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+                      Shipment Weight (kg)
+                    </label>
+                    <input
+                      type="number"
+                      value={cargoWeight}
+                      onChange={(e) => setCargoWeight(e.target.value)}
+                      min="1"
+                      step="50"
+                      className="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl px-3 py-1.5 text-xs text-slate-100 font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+                      Cargo Volume (m³)
+                    </label>
+                    <input
+                      type="number"
+                      value={cargoVolume}
+                      onChange={(e) => setCargoVolume(e.target.value)}
+                      min="0.5"
+                      step="0.5"
+                      className="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl px-3 py-1.5 text-xs text-slate-100 font-mono"
+                    />
+                  </div>
+                </div>
+
+                {selectedVehicle && (
+                  <div className="mt-2 space-y-1.5">
+                    <div className="p-2 rounded-xl bg-indigo-950/30 border border-indigo-800/40 text-[11px] flex items-center justify-between text-indigo-300">
+                      <span>Total Gross Load:</span>
+                      <span className="font-bold text-white">
+                        {(selectedVehicle.tare_weight_kg + (parseFloat(cargoWeight) || 0)).toLocaleString()} kg
+                        ({((selectedVehicle.tare_weight_kg + (parseFloat(cargoWeight) || 0)) / 1000).toFixed(2)} Tonnes)
+                      </span>
+                    </div>
+
+                    {/* Dynamic Overload Warning */}
+                    {parseFloat(cargoWeight) > selectedVehicle.max_weight_capacity_kg && (
+                      <div className="p-2 rounded-xl bg-rose-950/70 border border-rose-800 text-rose-300 text-[11px] flex items-start gap-1.5 font-semibold">
+                        <AlertTriangle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
+                        <span>
+                          Vehicle Payload Exceeded! Weight ({parseFloat(cargoWeight).toLocaleString()} kg) exceeds maximum payload capacity ({selectedVehicle.max_weight_capacity_kg.toLocaleString()} kg).
+                        </span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -546,7 +740,7 @@ export default function TripPlannerPage() {
               </div>
             </div>
 
-            {/* Submit Button - Glowing Emerald Pill */}
+            {/* Submit Button - Glowing Emerald Pill with progressive loading step */}
             <button
               onClick={handleGenerateRoutes}
               disabled={loading}
@@ -555,7 +749,7 @@ export default function TripPlannerPage() {
               {loading ? (
                 <>
                   <Sparkles className="w-4 h-4 animate-spin text-slate-950" />
-                  <span>Evaluating Road Clearances & Telemetry...</span>
+                  <span className="truncate">{LOADING_STEPS[loadingStep]}</span>
                 </>
               ) : (
                 <>
@@ -729,6 +923,30 @@ export default function TripPlannerPage() {
             )}
           </div>
 
+          {/* Budget Constraint Exceeded Alert (Requirement 10) */}
+          {(() => {
+            const parsedBudget = parseFloat(budget) || 0;
+            const minCost = routes.length > 0 ? Math.min(...routes.map(r => r.total_cost || Infinity)) : 0;
+            const closest = routes.find(r => r.total_cost === minCost);
+            if (parsedBudget > 0 && minCost > parsedBudget) {
+              return (
+                <div className="p-4 rounded-2xl bg-amber-950/70 border border-amber-500/70 text-amber-200 text-xs sm:text-sm flex items-start gap-3 shadow-lg animate-in fade-in">
+                  <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <div className="font-heading font-extrabold uppercase tracking-wider text-amber-300">
+                      Budget Constraint Advisory
+                    </div>
+                    <div className="mt-0.5 leading-relaxed">
+                      No candidate route currently satisfies your budget ceiling of <strong>₹{parsedBudget.toLocaleString()}</strong>. 
+                      The closest feasible logistics option is <strong className="text-white">₹{minCost.toLocaleString()}</strong> ({closest?.route_name || 'Shortest Feasible Corridor'}).
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+            return null;
+          })()}
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {routes.map(r => {
               const isSelected = r.id === selectedRouteId;
@@ -889,6 +1107,7 @@ export default function TripPlannerPage() {
       <CoLoadingFeatureSection
         currentOrigin={originQuery}
         currentDestination={destinationQuery}
+        currentWeight={cargoWeight}
         onApplyLaneToPlanner={(lane) => {
           handleApplyPreset({ origin: lane.origin, dest: lane.destination });
         }}

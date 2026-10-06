@@ -35,6 +35,11 @@ export default function CoLoadingMarketplacePage() {
   const [filterType, setFilterType] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('matches'); // 'matches' | 'listings'
+
+  // Dynamic shipment parameters for matching engine
+  const [laneOrigin, setLaneOrigin] = useState('Mumbai');
+  const [laneDest, setLaneDest] = useState('Pune');
+  const [laneWeight, setLaneWeight] = useState(2500);
   
   // Agreement Modal state
   const [selectedMatch, setSelectedMatch] = useState(null);
@@ -64,11 +69,11 @@ export default function CoLoadingMarketplacePage() {
     loadData();
   }, []);
 
-  const loadData = async () => {
+  const loadData = async (orig = laneOrigin, dest = laneDest, wt = laneWeight) => {
     setLoading(true);
     try {
       const [matchesRes, listingsRes, statsRes] = await Promise.all([
-        coloadingApi.getMatches(),
+        coloadingApi.getMatches({ origin: orig, destination: dest, weight: wt }),
         coloadingApi.getListings(),
         coloadingApi.getStats()
       ]);
@@ -358,6 +363,47 @@ export default function CoLoadingMarketplacePage() {
                 Paired based on exact corridor overlap, compatible temperature zone, and autonomous cost minimization.
               </p>
             </div>
+          </div>
+
+          {/* Dynamic Lane Query Bar (Requirement 17 & 18) */}
+          <div className="p-4 rounded-2xl glass-panel border border-emerald-500/30 bg-[#081810] flex flex-wrap items-end gap-3 text-xs">
+            <div className="flex-1 min-w-[140px]">
+              <label className="text-slate-400 block mb-1 font-semibold">Origin City / Hub</label>
+              <input
+                type="text"
+                value={laneOrigin}
+                onChange={(e) => setLaneOrigin(e.target.value)}
+                placeholder="e.g. Mumbai"
+                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-emerald-500 font-medium"
+              />
+            </div>
+            <div className="flex-1 min-w-[140px]">
+              <label className="text-slate-400 block mb-1 font-semibold">Destination City</label>
+              <input
+                type="text"
+                value={laneDest}
+                onChange={(e) => setLaneDest(e.target.value)}
+                placeholder="e.g. Pune"
+                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-emerald-500 font-medium"
+              />
+            </div>
+            <div className="w-28">
+              <label className="text-slate-400 block mb-1 font-semibold">Weight (kg)</label>
+              <input
+                type="number"
+                value={laneWeight}
+                onChange={(e) => setLaneWeight(e.target.value)}
+                placeholder="2500"
+                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-emerald-500 font-mono"
+              />
+            </div>
+            <button
+              onClick={() => loadData(laneOrigin, laneDest, laneWeight)}
+              className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold flex items-center gap-1.5 transition shadow-md shadow-emerald-500/20 cursor-pointer"
+            >
+              <Search className="w-3.5 h-3.5" />
+              <span>Scan Dynamic Matches</span>
+            </button>
           </div>
 
           {matches.length === 0 ? (

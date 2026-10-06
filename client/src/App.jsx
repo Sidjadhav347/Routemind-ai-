@@ -87,9 +87,12 @@ function MainAppContent() {
       <AIAssistantDrawer
         isOpen={isAIOpen}
         onClose={() => setIsAIOpen(false)}
-        onApplyAction={(action) => {
-          if (action.includes('scenario')) navigate('/simulator');
-          else if (action.includes('pre-fill')) navigate('/');
+        onApplyAction={(action, extractedData) => {
+          if (action.includes('scenario')) {
+            navigate('/simulator', { state: { prefill: extractedData } });
+          } else if (action.includes('pre-fill') || action.includes('trip') || action.includes('Plan')) {
+            navigate('/', { state: { prefill: extractedData } });
+          }
         }}
       />
     </div>

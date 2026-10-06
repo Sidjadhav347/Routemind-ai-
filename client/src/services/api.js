@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: import.meta.env.VITE_API_URL || '/api',
   headers: {
     'Content-Type': 'application/json'
   }
@@ -10,7 +10,7 @@ const api = axios.create({
 // Attach JWT token from localStorage
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('routemind_token');
-  if (token) {
+  if (token && token !== 'undefined' && token !== 'null') {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
@@ -20,10 +20,41 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response.data,
   (error) => {
-    const errorData = error.response?.data?.error || {
-      message: error.message || 'Network communication error'
-    };
-    return Promise.reject(errorData);
+    let message = 'Network communication error';
+    let code = 'NETWORK_ERROR';
+    let details = null;
+
+    if (error.response) {
+      // Server responded with non-2xx status
+      const data = error.response.data;
+      if (typeof data === 'string') {
+        message = data;
+      } else if (data?.error) {
+        if (typeof data.error === 'string') {
+          message = data.error;
+        } else if (typeof data.error === 'object') {
+          message = data.error.message || message;
+          code = data.error.code || code;
+          details = data.error.details || null;
+        }
+      } else if (data?.message) {
+        message = data.message;
+      } else {
+        message = `Server responded with status code ${error.response.status}`;
+      }
+    } else if (error.request) {
+      // Request was sent but no response was received (backend server offline or connection refused)
+      message = 'Cannot connect to RouteMind backend server on port 5000. Please ensure the backend is running (`npm run dev` in workspace root).';
+      code = 'BACKEND_OFFLINE';
+    } else {
+      message = error.message || message;
+    }
+
+    const err = new Error(message);
+    err.code = code;
+    err.details = details;
+    err.original = error;
+    return Promise.reject(err);
   }
 );
 
@@ -58,6 +89,7 @@ export const cargoApi = {
 
 export const tripApi = {
   create: (data) => api.post('/trips', data),
+  optimize: (data) => api.post('/trips/optimize', data),
   getAll: () => api.get('/trips'),
   getById: (id) => api.get(`/trips/${id}`),
   start: (id) => api.post(`/trips/${id}/start`),
@@ -74,8 +106,9 @@ export const trafficApi = {
 };
 
 export const aiApi = {
-  chat: (query, tripId) => api.post('/ai/chat', { query, trip_id: tripId }),
-  explainRoute: (routeId, tripId) => api.post('/ai/explain', { route_id: routeId, trip_id: tripId }),
+  getStatus: () => api.get('/ai/status'),
+  chat: (query, tripId, apiKey) => api.post('/ai/chat', { query, trip_id: tripId, apiKey }),
+  explainRoute: (routeId, tripId, apiKey) => api.post('/ai/explain', { route_id: routeId, trip_id: tripId, apiKey }),
   runSimulation: (data) => api.post('/ai/simulate', data)
 };
 
@@ -97,7 +130,10 @@ export const coloadingApi = {
   getListings: (params) => api.get('/coloading/listings', { params }),
   getListingById: (id) => api.get(`/coloading/listings/${id}`),
   createListing: (data) => api.post('/coloading/listings', data),
-  getMatches: (listingId) => api.get('/coloading/matches', { params: { listing_id: listingId } }),
+  getMatches: (paramsOrId) => {
+    const params = typeof paramsOrId === 'string' ? { listing_id: paramsOrId } : (paramsOrId || {});
+    return api.get('/coloading/matches', { params });
+  },
   acceptMatch: (matchId, notes) => api.post('/coloading/matches/accept', { match_id: matchId, notes }),
   getStats: () => api.get('/coloading/stats')
 };

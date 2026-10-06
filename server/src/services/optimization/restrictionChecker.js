@@ -19,7 +19,7 @@ export class RestrictionChecker {
     const vehicleLength = parseFloat(vehicle.length_m || 4.5);
 
     const tareWeightKg = parseFloat(vehicle.tare_weight_kg || 1500);
-    const cargoWeightKg = cargo ? parseFloat(cargo.weight_kg || 0) : 0;
+    const cargoWeightKg = cargo ? parseFloat(cargo.weight_kg ?? cargo.weight ?? 0) : 0;
     const grossWeightKg = tareWeightKg + cargoWeightKg;
     const grossWeightTonnes = grossWeightKg / 1000.0;
 
@@ -36,7 +36,15 @@ export class RestrictionChecker {
     const routeSummary = (routeData.summary || '').toLowerCase();
 
     // Modern expressways feature high 5.5m clearance and heavy multi-axle ratings
-    const isExpressway = routeName.includes('expressway') || routeName.includes('ne-1') || routeName.includes('bypass');
+    const isExpressway = routeName.includes('expressway') || routeName.includes('ne-1') || (routeData.corridorType === 'EXPRESSWAY');
+
+    // Two-wheelers prohibited on high-speed expressways
+    if ((vehicle.type === 'BIKE' || vehicle.type === 'TWO_WHEELER') && isExpressway) {
+      return {
+        isCompatible: false,
+        reason: 'Two-wheelers (Motorcycles & Scooters) are prohibited on access-controlled expressways under IRC regulations.'
+      };
+    }
 
     // Check against known road restrictions
     for (const res of config.knownRoadRestrictions) {

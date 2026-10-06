@@ -8,6 +8,7 @@ const router = Router();
 
 router.use(authenticate);
 
+router.post('/optimize', validateBody(createTripSchema), TripController.optimizeTrip);
 router.post('/', validateBody(createTripSchema), TripController.createTrip);
 router.get('/', TripController.getTrips);
 router.get('/:id', TripController.getTripById);

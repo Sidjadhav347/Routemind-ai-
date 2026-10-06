@@ -151,8 +151,127 @@ button[type="submit"]:active {
 }
 ::-webkit-scrollbar-thumb {
   background: #143525;
-  border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #22c55e;
 }
+
+/* Real-Time Live GPS Radar Beacon */
+.user-gps-beacon {
+  position: relative;
+  width: 28px;
+  height: 28px;
+}
+.user-gps-beacon .beacon-core {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 14px;
+  height: 14px;
+  background: #06b6d4;
+  border: 2.5px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 0 16px #06b6d4;
+  z-index: 2;
+}
+.user-gps-beacon .beacon-wave {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid #06b6d4;
+  background: rgba(6, 182, 212, 0.25);
+  animation: radarPing 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  z-index: 1;
+}
+
+@keyframes radarPing {
+  0% { transform: translate(-50%, -50%) scale(0.6); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(2.4); opacity: 0; }
+}
+
+/* Real-Time Moving Vehicle Marker */
+.live-truck-marker {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.live-truck-marker .truck-body {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.9), 0 4px 10px rgba(0,0,0,0.5);
+  cursor: pointer;
+  z-index: 3;
+}
+
+.live-truck-marker .speed-tag {
+  position: absolute;
+  top: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #040907;
+  color: #34d399;
+  border: 1px solid #10b981;
+  border-radius: 6px;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 800;
+  font-family: monospace;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.8);
+  z-index: 4;
+}
+
+.live-truck-marker .headlight-beam {
+  position: absolute;
+  top: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 14px solid transparent;
+  border-right: 14px solid transparent;
+  border-top: 26px solid rgba(250, 204, 21, 0.4);
+  pointer-events: none;
+  filter: blur(2px);
+  z-index: 1;
+}
+
+/* Real-Time Bridge Clearance & Restriction Pin */
+.clearance-hazard-pin {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.clearance-hazard-pin .hazard-badge {
+  background: #f59e0b;
+  color: #040907;
+  border: 2px solid #ffffff;
+  border-radius: 8px;
+  padding: 3px 6px;
+  font-size: 10px;
+  font-weight: 900;
+  font-family: monospace;
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.8);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+  animation: pulse 2s infinite;
+}
+

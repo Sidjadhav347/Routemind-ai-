@@ -153,6 +153,61 @@ export const INITIAL_COLOADING_LISTINGS = [
     verified_partner: true,
     rating: 4.97,
     created_at: new Date(Date.now() - 1800000).toISOString()
+  },
+  {
+    id: 'coload-006',
+    company_name: 'Sahyadri Agro Cold Freight',
+    company_industry: 'Agriculture & Horticulture Logistics',
+    listing_type: 'OFFERING_SPACE',
+    vehicle_type: 'REFRIGERATED_TRUCK_16T',
+    vehicle_name: 'Eicher Pro 3019 Refrigerated Carrier',
+    corridor_name: 'Mumbai (Vashi) → Nashik (Ozar Agro Hub)',
+    origin_address: 'APMC Market Hub, Vashi, Navi Mumbai',
+    origin_coords: { lat: 19.0771, lng: 72.9986 },
+    destination_address: 'Ozar Agro Cargo Center, Nashik',
+    destination_coords: { lat: 20.0911, lng: 73.9167 },
+    total_capacity_kg: 8500,
+    used_capacity_kg: 4800,
+    utilization_percent: 56.5,
+    available_capacity_kg: 3700,
+    available_volume_m3: 15.0,
+    cargo_type: 'TEMPERATURE_CONTROLLED_REEFER',
+    temperature_range: '+2°C to +8°C',
+    cargo_description: 'Export table grapes and horticultural saplings',
+    solo_trip_cost: 9200.00,
+    fuel_cost: 4800.00,
+    toll_cost: 1600.00,
+    departure_window: 'Today, 15:00 - 18:00',
+    distance_km: 168.0,
+    status: 'OPEN',
+    verified_partner: true,
+    rating: 4.91,
+    created_at: new Date(Date.now() - 3600000 * 3).toISOString()
+  },
+  {
+    id: 'coload-007',
+    company_name: 'Godavari Precision Components',
+    company_industry: 'Automotive & Machine Tools',
+    listing_type: 'SEEKING_SPACE',
+    vehicle_type: 'DRY_BOX_TRUCK_12T',
+    corridor_name: 'Mumbai (Bhiwandi) → Nashik (Ambad MIDC)',
+    origin_address: 'Bhiwandi Logistics Hub, Maharashtra',
+    origin_coords: { lat: 19.2967, lng: 73.0631 },
+    destination_address: 'Ambad Industrial Estate, Nashik',
+    destination_coords: { lat: 19.9575, lng: 73.7420 },
+    required_capacity_kg: 1800,
+    required_volume_m3: 8.5,
+    cargo_type: 'DRY_PARCEL',
+    temperature_range: 'AMBIENT',
+    cargo_description: 'Precision CNC fixtures and fasteners',
+    solo_trip_cost: 7400.00,
+    max_budget: 4800.00,
+    departure_window: 'Today, 15:30 - 18:30',
+    distance_km: 155.0,
+    status: 'OPEN',
+    verified_partner: true,
+    rating: 4.85,
+    created_at: new Date(Date.now() - 3600000 * 2).toISOString()
   }
 ];
 
@@ -224,6 +279,168 @@ export const coloadingService = {
     };
 
     return Database.insert('coloading_listings', newListing);
+  },
+
+  /**
+   * Helper to check if a location query matches an address or corridor
+   */
+  matchesLocation(queryText, targetAddress) {
+    if (!queryText || !targetAddress) return false;
+    const q = String(queryText).toLowerCase().replace(/[^a-z0-9]/g, ' ');
+    const target = String(targetAddress).toLowerCase().replace(/[^a-z0-9]/g, ' ');
+    const stopWords = new Set(['the', 'and', 'hub', 'park', 'zone', 'city', 'maharashtra', 'india', 'state', 'terminal', 'road']);
+    const tokens = q.split(/\s+/).filter(t => t.length > 2 && !stopWords.has(t));
+    if (tokens.length === 0) return target.includes(q.trim());
+    return tokens.some(t => target.includes(t));
+  },
+
+  /**
+   * Dynamic Co-Loading Search & Matching Engine based on actual shipment parameters
+   */
+  findMatchesForShipment({
+    origin = 'Mumbai',
+    destination = 'Pune',
+    weightKg = 3000,
+    cargoType = 'GENERAL',
+    maxBudget = null,
+    mode = 'LIVE'
+  }) {
+    const allListings = this.getListings();
+    const origStr = typeof origin === 'string' ? origin : (origin?.address || '');
+    const destStr = typeof destination === 'string' ? destination : (destination?.address || '');
+    const reqWeight = parseFloat(weightKg) || 1000;
+
+    const matches = [];
+
+    // Filter available offers or open capacity in network
+    const offers = allListings.filter(l => l.listing_type === 'OFFERING_SPACE');
+
+    offers.forEach(offer => {
+      const origMatch = this.matchesLocation(origStr, `${offer.origin_address} ${offer.corridor_name}`);
+      const destMatch = this.matchesLocation(destStr, `${offer.destination_address} ${offer.corridor_name}`);
+
+      // Calculate corridor match percentage
+      let corridorOverlapPercent = 0;
+      let detourKm = 0;
+
+      if (origMatch && destMatch) {
+        corridorOverlapPercent = 95;
+        detourKm = 6;
+      } else if (origMatch || destMatch) {
+        corridorOverlapPercent = 65;
+        detourKm = 28;
+      } else {
+        // Completely different corridor
+        corridorOverlapPercent = 15;
+        detourKm = 85;
+      }
+
+      // Check capacity fit
+      const canFitWeight = (offer.available_capacity_kg || 0) >= reqWeight;
+      const weightFitScore = canFitWeight
+        ? Math.min(100, Math.round((reqWeight / (offer.available_capacity_kg || 1)) * 100))
+        : 20;
+
+      // Realistic compatibility score calculation
+      let compatibilityScore = Math.round(
+        (corridorOverlapPercent * 0.45) +
+        (Math.min(100, weightFitScore) * 0.30) +
+        (offer.verified_partner ? 15 : 5) +
+        (Math.max(0, 10 - (detourKm * 0.15)))
+      );
+
+      // Pro-rata autonomous cost split
+      const weightA = offer.used_capacity_kg || 4000;
+      const weightB = reqWeight;
+      const combinedWeight = weightA + weightB;
+      const baseRatioB = weightB / (combinedWeight || 1);
+
+      const estimatedSoloCost = Math.round((offer.distance_km || 140) * 45);
+      const waypointOverhead = Math.round(detourKm * 35 + 400);
+      const totalSharedRouteCost = offer.solo_trip_cost + waypointOverhead;
+
+      const companyBCostShare = Math.round(totalSharedRouteCost * baseRatioB);
+      const companyACostShare = totalSharedRouteCost - companyBCostShare;
+
+      const shipperSavings = Math.max(800, estimatedSoloCost - companyBCostShare);
+      const hostSavings = Math.max(600, offer.solo_trip_cost - companyACostShare);
+      const shipperSavingsPercent = parseFloat(((shipperSavings / (estimatedSoloCost || 1)) * 100).toFixed(1));
+
+      const co2KgAvoided = Math.round((offer.distance_km || 140) * 0.22 * 2.68);
+
+      const matchId = `match-dyn-${offer.id}-${Math.round(reqWeight)}`;
+
+      // Include matches that have sufficient corridor overlap or capacity fit
+      if (corridorOverlapPercent >= 50 && canFitWeight) {
+        matches.push({
+          id: matchId,
+          match_score: Math.min(99, Math.max(60, compatibilityScore)),
+          status: 'AI_MATCHED',
+          corridor: `${origStr.split(',')[0]} → ${destStr.split(',')[0]} (${offer.vehicle_name})`,
+          route_overlap_percent: corridorOverlapPercent,
+          detour_km: detourKm,
+          host_company: {
+            id: offer.id,
+            name: offer.company_name,
+            industry: offer.company_industry,
+            vehicle: offer.vehicle_name,
+            original_utilization: offer.utilization_percent,
+            loaded_weight_kg: weightA,
+            solo_cost: offer.solo_trip_cost,
+            split_cost: companyACostShare,
+            net_savings: hostSavings,
+            savings_percent: parseFloat(((hostSavings / offer.solo_trip_cost) * 100).toFixed(1))
+          },
+          guest_company: {
+            id: `shipper-${Math.round(reqWeight)}`,
+            name: 'Your Shipment Request',
+            industry: 'Commercial Freight Load',
+            needed_weight_kg: reqWeight,
+            solo_cost: estimatedSoloCost,
+            split_cost: companyBCostShare,
+            net_savings: shipperSavings,
+            savings_percent: shipperSavingsPercent
+          },
+          financials: {
+            savings_inr: shipperSavings,
+            split_cost_inr: companyBCostShare,
+            solo_cost_inr: estimatedSoloCost,
+            savings_percent: shipperSavingsPercent
+          },
+          operational_metrics: {
+            combined_weight_kg: combinedWeight,
+            total_capacity_kg: offer.total_capacity_kg,
+            initial_utilization_percent: offer.utilization_percent,
+            optimized_utilization_percent: parseFloat(Math.min(100, (combinedWeight / offer.total_capacity_kg) * 100).toFixed(1)),
+            total_trip_cost_without_coloading: offer.solo_trip_cost + estimatedSoloCost,
+            total_trip_cost_with_coloading: totalSharedRouteCost,
+            total_money_saved: hostSavings + shipperSavings,
+            co2_emissions_saved_kg: co2KgAvoided,
+            trucks_taken_off_road: 1,
+            temperature_compliance: offer.temperature_range,
+            non_competing_status: 'VERIFIED_NON_COMPETING'
+          },
+          ai_explanation: `AI Network Match Engine paired your ${reqWeight.toLocaleString()} kg consignment with ${offer.company_name} on the ${origStr.split(',')[0]} → ${destStr.split(',')[0]} corridor (${corridorOverlapPercent}% route overlap). Detour is only ${detourKm} km. Pro-rata sharing saves you ₹${shipperSavings.toLocaleString()} (${shipperSavingsPercent}% savings) and eliminates ${co2KgAvoided} kg CO2.`,
+          digital_sla: {
+            escrow_split_pct: {
+              host: parseFloat(((companyACostShare / totalSharedRouteCost) * 100).toFixed(1)),
+              guest: parseFloat(((companyBCostShare / totalSharedRouteCost) * 100).toFixed(1))
+            },
+            temperature_monitoring: 'REALTIME_TELEMETRY_LOGGED',
+            waypoint_stops: [
+              { type: 'PRIMARY_PICKUP', address: offer.origin_address, window: '14:00' },
+              { type: 'SECONDARY_COLOAD_PICKUP', address: origStr, window: '14:45' },
+              { type: 'PRIMARY_DROPOFF', address: offer.destination_address, window: '17:15' },
+              { type: 'SECONDARY_DROPOFF', address: destStr, window: '18:00' }
+            ]
+          }
+        });
+      }
+    });
+
+    // Sort descending by match_score
+    matches.sort((a, b) => b.match_score - a.match_score);
+    return matches;
   },
 
   /**

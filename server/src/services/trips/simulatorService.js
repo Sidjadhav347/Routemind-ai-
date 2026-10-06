@@ -1,4 +1,5 @@
 import { RouteGeneratorService } from '../routing/routeGeneratorService.js';
+import { OptimizationEngine } from '../optimization/optimizationEngine.js';
 import { AIService } from '../ai/geminiService.js';
 import { formatTimeWithAMPM } from '../../utils/distanceUtils.js';
 
@@ -80,63 +81,51 @@ export class SimulatorService {
     const origin = { address: originName, lat: originLat, lng: originLng };
     const destination = { address: destinationName, lat: destinationLat, lng: destinationLng };
 
-    // Standard baseline reference times for 145km Mumbai-Pune trip
-    const modes = ['FASTEST', 'CHEAPEST', 'FUEL_EFFICIENT', 'BALANCED'];
-    const results = {};
+    // Generate real dynamic candidate routes
+    const candidateRoutes = await RouteGeneratorService.generateTripRoutes({
+      tripId: `sim-${Date.now()}`,
+      origin,
+      destination,
+      vehicle,
+      cargo,
+      optimizationMode: 'BALANCED',
+      desiredArrivalTime: null,
+      maxBudget: budget
+    });
 
-    // Specific hackathon showcase benchmarks
-    const simulatedBenchmarks = {
-      FASTEST: {
-        durationMinutes: 135,
-        eta: '4:45 PM',
-        cost: 1850.00,
-        fuelLiters: 38.5,
-        tolls: 320.00,
-        trafficLevel: 'LOW',
-        distanceKm: 146.0,
-        routeLabel: 'Mumbai-Pune Expressway (NE-1)',
-        summary: 'Prioritizes high average speed and grade-separated bypasses to minimize delivery time.'
-      },
-      CHEAPEST: {
-        durationMinutes: 190,
-        eta: '5:40 PM',
-        cost: 1320.00,
-        fuelLiters: 32.0,
-        tolls: 135.00,
-        trafficLevel: 'HEAVY',
-        distanceKm: 136.0,
-        routeLabel: 'Old NH48 Highway via Panvel & Khopoli',
-        summary: 'Minimizes express toll tariffs and shortens physical distance, but incurs crawling speed in urban sectors.'
-      },
-      FUEL_EFFICIENT: {
-        durationMinutes: 170,
-        eta: '5:20 PM',
-        cost: 1410.00,
-        fuelLiters: 29.5,
-        tolls: 210.00,
-        trafficLevel: 'MODERATE',
-        distanceKm: 140.0,
-        routeLabel: 'Khalapur - Lonavala Steady Gradient Route',
-        summary: 'Avoids steep ghat braking and idling congestion to optimize engine RPM and fuel economy.'
-      },
-      BALANCED: {
-        durationMinutes: 165,
-        eta: '5:15 PM',
-        cost: 1480.00,
-        fuelLiters: 31.0,
-        tolls: 260.00,
-        trafficLevel: 'MODERATE',
-        distanceKm: 142.5,
-        routeLabel: 'Expressway with Strategic Bypass Interchange',
-        summary: 'Equitably balances transit time, fuel consumption, and toll outlays to satisfy deadlines with safe margins.'
-      }
+    // Score independently under each optimization mode
+    const bestFastest = OptimizationEngine.scoreAndRankRoutes([...candidateRoutes], 'FASTEST', null, budget)[0] || candidateRoutes[0];
+    const bestCheapest = OptimizationEngine.scoreAndRankRoutes([...candidateRoutes], 'CHEAPEST', null, budget)[0] || candidateRoutes[0];
+    const bestFuel = OptimizationEngine.scoreAndRankRoutes([...candidateRoutes], 'FUEL_EFFICIENT', null, budget)[0] || candidateRoutes[0];
+    const bestBalanced = OptimizationEngine.scoreAndRankRoutes([...candidateRoutes], 'BALANCED', null, budget)[0] || candidateRoutes[0];
+
+    const toScenario = (route, labelDesc) => ({
+      durationMinutes: route.duration_minutes,
+      eta: route.current_eta,
+      cost: route.total_cost,
+      fuelLiters: route.fuel_liters,
+      tolls: route.toll_cost,
+      trafficLevel: route.traffic_level,
+      distanceKm: route.distance_km,
+      routeLabel: `${route.route_code}: ${route.route_name}`,
+      summary: route.summary || labelDesc
+    });
+
+    const dynamicScenarios = {
+      FASTEST: toScenario(bestFastest, 'Prioritizes minimal transit duration and high-speed bypasses.'),
+      CHEAPEST: toScenario(bestCheapest, 'Minimizes express toll outlays and fuel consumption.'),
+      FUEL_EFFICIENT: toScenario(bestFuel, 'Optimizes engine efficiency and steady transit gradients.'),
+      BALANCED: toScenario(bestBalanced, 'Equitably balances transit time, toll outlays, and safety buffer.')
     };
 
-    // Calculate AI comparative explanation
-    const aiExplanation = `Simulation Analysis for ${vehicle.name} carrying ${cargoWeightKg} kg from ${originName} to ${destinationName}:
-- FASTEST arrives at 4:45 PM (ETA 135m, ₹1,850), delivering 75 minutes ahead of your 6:00 PM deadline, but consumes 28% more toll and fuel budget.
-- CHEAPEST drops expenses to ₹1,320 (saving ₹530), but arrival is delayed to 5:40 PM, leaving a tight 20-minute safety buffer.
-- BALANCED delivers at 5:15 PM for ₹1,480, keeping expenditure safely within your ₹${budget} budget while ensuring a comfortable 45-minute delivery buffer and 100% vehicle weight compliance.`;
+    // Calculate dynamic AI comparative explanation
+    const costSavings = Math.max(0, Math.round(bestFastest.total_cost - bestCheapest.total_cost));
+    const timeSaved = Math.max(0, Math.round(bestCheapest.duration_minutes - bestFastest.duration_minutes));
+
+    const aiExplanation = `Simulation Analysis for ${vehicle.name} carrying ${cargoWeightKg.toLocaleString()} kg from ${originName} to ${destinationName}:
+- FASTEST (${bestFastest.route_code}) delivers in ${bestFastest.duration_minutes}m (ETA ${bestFastest.current_eta}) for ₹${bestFastest.total_cost.toLocaleString()}, saving ${timeSaved} minutes compared to alternate corridors.
+- CHEAPEST (${bestCheapest.route_code}) lowers expenditure to ₹${bestCheapest.total_cost.toLocaleString()} (saving ₹${costSavings.toLocaleString()}), but transit duration is ${bestCheapest.duration_minutes} minutes.
+- BALANCED (${bestBalanced.route_code}) delivers in ${bestBalanced.duration_minutes}m for ₹${bestBalanced.total_cost.toLocaleString()}, keeping costs aligned with your ₹${budget.toLocaleString()} budget with optimal load clearance.`;
 
     return {
       simulationId: `SIM-${Date.now()}`,
@@ -149,7 +138,7 @@ export class SimulatorService {
         deadlineTime,
         budget
       },
-      scenarios: simulatedBenchmarks,
+      scenarios: dynamicScenarios,
       aiExplanation,
       recommendedMode: 'BALANCED'
     };

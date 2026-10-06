@@ -2,13 +2,45 @@
  * RouteMind AI Comprehensive Cost Calculation Engine
  * Computes:
  * - Fuel cost
- * - Toll cost (highway tolls / expressway charges)
+ * - Toll cost (highway tolls / expressway charges based on distance, corridor type & vehicle category)
  * - Operating & maintenance wear cost
  * - Total estimated transportation cost
  */
 
+/**
+ * Calculates realistic, dynamically computed toll fees based on vehicle class and road type
+ */
+export function calculateRouteToll({
+  distanceKm = 0,
+  vehicleType = 'CAR',
+  corridorType = 'EXPRESSWAY'
+}) {
+  // Vehicle toll category multipliers based on standard NHAI / Express Highway matrix
+  const vehicleTollMultiplier = {
+    BIKE: 0.0,         // Two-wheelers exempt on Indian highways / banned on expressways
+    CAR: 1.0,          // Base passenger car
+    VAN: 1.25,         // Light Commercial / Delivery Van
+    PICKUP: 1.4,       // LCV / Pickup
+    LIGHT_TRUCK: 2.2,  // 2-axle commercial truck
+    HEAVY_TRUCK: 4.2,  // 3-axle to multi-axle heavy commercial truck (16T+)
+    BUS: 3.4,          // Commercial passenger bus
+    OTHER: 1.5
+  }[vehicleType] ?? 1.0;
+
+  // Base rate per km for a passenger car
+  const baseTollRatePerKm = {
+    EXPRESSWAY: 2.10,  // Controlled access expressway
+    HIGHWAY: 0.85,     // National Highway / 4-lane arterial
+    BYPASS: 0.35,      // State bypass / semi-tolled ring road
+    LOCAL: 0.0         // Non-tolled arterial
+  }[corridorType] ?? 0.85;
+
+  const rawToll = distanceKm * baseTollRatePerKm * vehicleTollMultiplier;
+  return parseFloat(Math.round(rawToll).toFixed(2));
+}
+
 export function calculateTotalTripCost({
-  fuelCost,
+  fuelCost = 0,
   tollCost = 0,
   distanceKm = 0,
   vehicleType = 'CAR',
@@ -42,3 +74,4 @@ export function calculateTotalTripCost({
     }
   };
 }
+

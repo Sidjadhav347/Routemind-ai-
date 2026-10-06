@@ -3,9 +3,21 @@ import { SimulatorService } from '../services/trips/simulatorService.js';
 import { Database } from '../database/db.js';
 
 export class AIController {
+  static async getStatus(req, res) {
+    const hasEnvKey = Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim().length > 0);
+    res.json({
+      success: true,
+      data: {
+        hasGeminiKey: hasEnvKey,
+        model: process.env.GEMINI_MODEL || 'gemini-1.5-flash',
+        defaultEngine: hasEnvKey ? 'gemini-1.5-flash' : 'routemind-grounded'
+      }
+    });
+  }
+
   static async chat(req, res, next) {
     try {
-      const { query, trip_id = null } = req.body;
+      const { query, trip_id = null, apiKey = null } = req.body;
       const activeTrip = trip_id ? Database.findById('trips', trip_id) : null;
       const vehicles = Database.find('vehicles', v => v.user_id === req.user.id);
       const cargoList = Database.find('cargo', c => c.user_id === req.user.id);
@@ -15,7 +27,8 @@ export class AIController {
         user: req.user,
         activeTrip,
         vehicles,
-        cargoList
+        cargoList,
+        apiKey
       });
 
       res.json({

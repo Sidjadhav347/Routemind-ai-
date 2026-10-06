@@ -12,6 +12,17 @@ export class OSRMProvider {
 
     const routes = [];
 
+    const extractCity = (loc) => {
+      if (!loc) return 'City';
+      const addr = (loc.address || '').split(',')[0].trim();
+      return addr || 'Terminal';
+    };
+
+    const origCity = extractCity(origin);
+    const destCity = extractCity(destination);
+    const isMumbaiPune = (origCity.toLowerCase().includes('mumbai') && destCity.toLowerCase().includes('pune')) ||
+                         (origCity.toLowerCase().includes('pune') && destCity.toLowerCase().includes('mumbai'));
+
     // Try fetching from public OSRM
     const coordsStr = `${origin.lng},${origin.lat};${destination.lng},${destination.lat}`;
     const url = `https://router.project-osrm.org/route/v1/driving/${coordsStr}?overview=full&geometries=geojson&alternatives=true&steps=true`;
@@ -20,8 +31,44 @@ export class OSRMProvider {
       const response = await axios.get(url, { timeout: 3500 });
       if (response.data && response.data.routes && response.data.routes.length > 0) {
         response.data.routes.forEach((r, idx) => {
+          let name = '';
+          let corridorType = 'EXPRESSWAY';
+          let summary = '';
+
+          if (isMumbaiPune) {
+            if (idx === 0) {
+              name = 'Mumbai-Pune Expressway (NE-1)';
+              corridorType = 'EXPRESSWAY';
+              summary = 'Direct grade-separated high-speed expressway via Bhor Ghat tunnels';
+            } else if (idx === 1) {
+              name = 'Old Mumbai-Pune Highway (NH48)';
+              corridorType = 'HIGHWAY';
+              summary = 'Heritage arterial corridor through Panvel, Khopoli & Khandala';
+            } else {
+              name = 'Navi Mumbai - Khalapur Ring Bypass';
+              corridorType = 'BYPASS';
+              summary = 'Bypass corridor with consistent multi-axle freight clearance';
+            }
+          } else {
+            if (idx === 0) {
+              name = `${origCity} - ${destCity} Primary Express Corridor`;
+              corridorType = 'EXPRESSWAY';
+              summary = `Primary grade-separated transit corridor connecting ${origCity} and ${destCity}`;
+            } else if (idx === 1) {
+              name = `${origCity} - ${destCity} Direct Arterial Highway`;
+              corridorType = 'HIGHWAY';
+              summary = `Direct arterial national/state highway corridor connecting ${origCity} and ${destCity}`;
+            } else {
+              name = `${origCity} - ${destCity} Outer Logistics Bypass`;
+              corridorType = 'BYPASS';
+              summary = `Outer freight bypass corridor with generous axle clearances avoiding municipal bottlenecks`;
+            }
+          }
+
           routes.push({
-            name: idx === 0 ? 'Mumbai-Pune Expressway (NE-1)' : `Alternative Corridor ${String.fromCharCode(65 + idx)}`,
+            name,
+            corridorType,
+            summary,
             distanceKm: parseFloat((r.distance / 1000).toFixed(2)),
             durationMinutes: Math.round(r.duration / 60),
             polyline: r.geometry.coordinates.map(c => [c[1], c[0]])
@@ -32,31 +79,35 @@ export class OSRMProvider {
       console.warn('[OSRMProvider] Public OSRM API unreachable or timed out:', err.message);
     }
 
-    // If OSRM returned fewer than 3 alternatives, supplement with realistic alternative corridors
+    // If OSRM returned fewer than 2 alternatives, supplement with realistic alternative corridors
     if (routes.length < 2) {
-      // 1. National Highway NH48 / Heritage Corridor
       routes.push({
-        name: 'Old Mumbai-Pune Highway (NH48)',
-        distanceKm: parseFloat((baseDistanceKm * 0.94).toFixed(1)),
-        durationMinutes: Math.round((baseDistanceKm * 0.94) / 46 * 60), // slower average speed 46 km/h
+        name: isMumbaiPune ? 'Old Mumbai-Pune Highway (NH48)' : `${origCity} - ${destCity} Direct Arterial Highway`,
+        corridorType: 'HIGHWAY',
+        summary: isMumbaiPune ? 'Heritage arterial corridor through Panvel, Khopoli & Khandala' : `Direct arterial corridor between ${origCity} and ${destCity}`,
+        distanceKm: parseFloat((baseDistanceKm * 0.96).toFixed(1)),
+        durationMinutes: Math.round((baseDistanceKm * 0.96) / 48 * 60), // slower average speed 48 km/h
         polyline: generateCurvedPath(origin.lat, origin.lng, destination.lat, destination.lng, -0.06)
       });
     }
 
     if (routes.length < 3) {
-      // 2. Outer Logistics Bypass Corridor
       routes.push({
-        name: 'Navi Mumbai - Khalapur Ring Bypass',
+        name: isMumbaiPune ? 'Navi Mumbai - Khalapur Ring Bypass' : `${origCity} - ${destCity} Outer Logistics Bypass`,
+        corridorType: 'BYPASS',
+        summary: isMumbaiPune ? 'Bypass corridor with consistent multi-axle freight clearance' : `Outer regional freight bypass avoiding congested city centers`,
         distanceKm: parseFloat((baseDistanceKm * 1.15).toFixed(1)),
         durationMinutes: Math.round((baseDistanceKm * 1.15) / 60 * 60), // steady 60 km/h
         polyline: generateCurvedPath(origin.lat, origin.lng, destination.lat, destination.lng, 0.10)
       });
     }
 
-    // If primary route wasn't retrieved by OSRM, prepend direct Expressway
-    if (routes.length === 2 && !routes.some(r => r.name.includes('Expressway'))) {
+    // Ensure primary Express route is at index 0 if not present
+    if (routes.length === 2 && !routes.some(r => r.corridorType === 'EXPRESSWAY')) {
       routes.unshift({
-        name: 'Mumbai-Pune Expressway (NE-1)',
+        name: isMumbaiPune ? 'Mumbai-Pune Expressway (NE-1)' : `${origCity} - ${destCity} Primary Express Corridor`,
+        corridorType: 'EXPRESSWAY',
+        summary: isMumbaiPune ? 'Direct grade-separated high-speed expressway via Bhor Ghat tunnels' : `Fastest grade-separated highway route between ${origCity} and ${destCity}`,
         distanceKm: parseFloat((baseDistanceKm * 1.02).toFixed(1)),
         durationMinutes: Math.round((baseDistanceKm * 1.02) / 75 * 60),
         polyline: generateCurvedPath(origin.lat, origin.lng, destination.lat, destination.lng, 0.04)

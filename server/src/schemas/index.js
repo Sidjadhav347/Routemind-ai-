@@ -46,14 +46,14 @@ export const cargoPriorityEnum = z.enum([
 
 // Auth Schemas
 export const registerSchema = z.object({
-  email: z.string().email('Please provide a valid email address'),
+  email: z.string().trim().email('Please provide a valid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
-  name: z.string().min(2, 'Name must be at least 2 characters'),
+  name: z.string().trim().min(2, 'Name must be at least 2 characters'),
   role: z.enum(['COMMUTER', 'DRIVER', 'OPERATOR']).optional().default('OPERATOR')
 });
 
 export const loginSchema = z.object({
-  email: z.string().email('Please provide a valid email address'),
+  email: z.string().trim().email('Please provide a valid email address'),
   password: z.string().min(1, 'Password is required')
 });
 
@@ -98,21 +98,40 @@ export const cargoSchema = z.object({
 
 // Location / Coordinate Schema
 export const locationSchema = z.object({
-  address: z.string().min(1, 'Address is required'),
+  address: z.string().optional().default(''),
   lat: z.number().min(-90).max(90, 'Valid latitude required (-90 to 90)'),
   lng: z.number().min(-180).max(180, 'Valid longitude required (-180 to 180)')
 });
 
-// Trip Creation Schema
+export const flexibleLocationSchema = z.union([
+  locationSchema,
+  z.string().min(1, 'Location query must not be empty')
+]);
+
+// Trip Creation Schema (Validates origin, destination, vehicle, payload weight, budget, deadline, mode)
 export const createTripSchema = z.object({
-  origin: locationSchema,
-  destination: locationSchema,
-  waypoints: z.array(locationSchema).optional().default([]),
-  vehicle_id: z.string().uuid('Valid vehicle ID required'),
-  cargo_id: z.string().uuid().nullable().optional(),
-  desired_arrival_time: z.string().datetime().optional().nullable(),
-  max_budget: z.number().positive().optional().nullable(),
-  optimization_mode: optimizationModeEnum.default('BALANCED')
+  origin: flexibleLocationSchema,
+  destination: flexibleLocationSchema,
+  waypoints: z.array(flexibleLocationSchema).optional().default([]),
+  vehicle_id: z.string().optional().nullable(),
+  vehicleType: z.string().optional(),
+  vehicle_type: z.string().optional(),
+  cargo_id: z.string().optional().nullable(),
+  weight: z.number().min(0).optional(),
+  weight_kg: z.number().min(0).optional(),
+  volume: z.number().min(0).optional(),
+  volume_m3: z.number().min(0).optional(),
+  dimensions: z.object({
+    length_m: z.number().optional(),
+    width_m: z.number().optional(),
+    height_m: z.number().optional()
+  }).optional(),
+  desired_arrival_time: z.string().optional().nullable(),
+  deadline: z.string().optional().nullable(),
+  max_budget: z.number().min(0).optional().nullable(),
+  budget: z.number().min(0).optional().nullable(),
+  optimization_mode: z.string().optional().default('BALANCED'),
+  optimizationMode: z.string().optional()
 });
 
 // Dynamic Rerouting Action Schema
@@ -139,5 +158,6 @@ export const simulatorSchema = z.object({
 export const aiChatSchema = z.object({
   query: z.string().min(2, 'Query must be at least 2 characters'),
   trip_id: z.string().uuid().optional().nullable(),
+  apiKey: z.string().optional().nullable(),
   context: z.record(z.any()).optional()
 });

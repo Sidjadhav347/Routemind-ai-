@@ -281,6 +281,8 @@ export default function ActiveMonitorPage() {
                 routes={routes}
                 activeRouteId={trip.current_route_id}
                 trafficEvents={trafficEvents}
+                isLiveTrip={true}
+                allowPinning={false}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-slate-500">Loading trip telemetry...</div>

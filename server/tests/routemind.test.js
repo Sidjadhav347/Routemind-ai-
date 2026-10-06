@@ -154,3 +154,41 @@ test('7. AI Route Explanation Verification', async () => {
   assert.ok(explanation.benefits.length >= 2, 'Must list key benefits');
   assert.ok(explanation.confidence >= 80, 'Must have high confidence score');
 });
+
+test('8. AI Mobility Query - Road Clearance Latur to Kolhapur (Zero Errors)', async () => {
+  const result = await AIService.handleMobilityQuery({
+    query: 'Check road clearances for Latur to Kolhapur'
+  });
+
+  assert.equal(result.intent, 'CHECK_ROAD_CLEARANCE', 'Must detect clearance check intent, not trip planning');
+  assert.equal(result.extractedData.origin, 'Latur', 'Origin must be clean city name without command prefix');
+  assert.equal(result.extractedData.destination, 'Kolhapur', 'Destination must be Kolhapur');
+  assert.ok(result.extractedData.overheadClearanceM, 'Must provide overhead clearance');
+  assert.ok(result.extractedData.maxGrossWeightTonnes, 'Must provide bridge gross weight rating');
+  assert.match(result.answer, /NH166/i, 'Must reference NH166 corridor for Latur-Kolhapur');
+  assert.doesNotMatch(result.answer, /Check Road Clearances For Latur/i, 'Must never treat command words as city name');
+});
+
+test('9. AI Mobility Query - Logistics Trip Planning with Weight', async () => {
+  const result = await AIService.handleMobilityQuery({
+    query: 'I want to deliver 5000kg from Kolhapur to Latur by 6 PM'
+  });
+
+  assert.equal(result.intent, 'LOGISTICS_TRIP_PLANNING');
+  assert.equal(result.extractedData.origin, 'Kolhapur');
+  assert.equal(result.extractedData.destination, 'Latur');
+  assert.match(result.extractedData.cargoWeightKg, /5,000/);
+  assert.match(result.extractedData.deadline, /6\s*PM/i);
+});
+
+test('10. AI Mobility Query - Semantic Intent Classification', async () => {
+  const whyResult = await AIService.handleMobilityQuery({ query: 'Why did you choose Route A?' });
+  assert.equal(whyResult.intent, 'EXPLAIN_ROUTE_CHOICE');
+
+  const trafficResult = await AIService.handleMobilityQuery({ query: 'Traffic is getting worse. What should I do?' });
+  assert.equal(trafficResult.intent, 'DEPARTURE_TRAFFIC_ADVICE');
+
+  const costResult = await AIService.handleMobilityQuery({ query: 'Which route is cheapest?' });
+  assert.equal(costResult.intent, 'COST_AND_FUEL_OPTIMIZATION');
+});
+

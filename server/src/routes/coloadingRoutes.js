@@ -27,8 +27,22 @@ router.post('/listings', authenticate, (req, res, next) => {
 // GET AI Matches with autonomous cost splitting
 router.get('/matches', (req, res, next) => {
   try {
+    const { origin, destination, weight, weight_kg, cargo_type, budget, listingId, listing_id, mode } = req.query;
+
+    if (origin || destination || weight || weight_kg) {
+      const dynamicMatches = coloadingService.findMatchesForShipment({
+        origin: origin || 'Mumbai',
+        destination: destination || 'Pune',
+        weightKg: weight || weight_kg || 2500,
+        cargoType: cargo_type || 'GENERAL',
+        maxBudget: budget || null,
+        mode: mode || 'LIVE'
+      });
+      return res.json({ success: true, count: dynamicMatches.length, data: dynamicMatches, mode: mode || 'LIVE' });
+    }
+
     const includeAll = req.query.includeAll !== 'false';
-    const matches = coloadingService.getAiMatches(req.query.listingId || null, includeAll);
+    const matches = coloadingService.getAiMatches(listingId || listing_id || null, includeAll);
     res.json({ success: true, count: matches.length, data: matches });
   } catch (err) {
     next(err);
