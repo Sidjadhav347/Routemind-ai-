@@ -13,6 +13,7 @@ import CoLoadingMarketplacePage from './pages/CoLoadingMarketplacePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import AIAssistantDrawer from './components/ai-assistant/AIAssistantDrawer';
+import FloatingActionMenu from './components/common/FloatingActionMenu';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -82,6 +83,9 @@ function MainAppContent() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
+
+      {/* Floating Action Menu (Jitter-style Spring Speed Dial) */}
+      <FloatingActionMenu onOpenAI={() => setIsAIOpen(true)} />
 
       {/* Floating AI Assistant Drawer */}
       <AIAssistantDrawer

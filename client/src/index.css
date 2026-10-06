@@ -275,3 +275,79 @@ button[type="submit"]:active {
   animation: pulse 2s infinite;
 }
 
+/* Jitter-Style Floating Action Menu Spring Animations */
+@keyframes jitterFabSpringIn {
+  0% {
+    opacity: 0;
+    transform: translateY(36px) scale(0.32);
+  }
+  55% {
+    opacity: 1;
+    transform: translateY(-8px) scale(1.12);
+  }
+  78% {
+    transform: translateY(3px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes jitterFabSpringOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(24px) scale(0.35);
+  }
+}
+
+@keyframes jitterPillSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateX(14px) scale(0.92);
+  }
+  70% {
+    transform: translateX(-3px) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes jitterRipple {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.65);
+  }
+  65% {
+    transform: scale(1);
+    box-shadow: 0 0 0 16px rgba(168, 85, 247, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(168, 85, 247, 0);
+  }
+}
+
+.jitter-spring-in {
+  animation: jitterFabSpringIn 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.jitter-spring-out {
+  animation: jitterFabSpringOut 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.jitter-pill-in {
+  animation: jitterPillSlideIn 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.jitter-ripple {
+  animation: jitterRipple 2.2s infinite;
+}
+
+
